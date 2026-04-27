@@ -1,0 +1,57 @@
+# ═══════════════════════════════════════════
+# Render Blueprint — FaceVoiceAuth
+# Deploy Backend, Frontend, Postgres, and Redis
+# ═══════════════════════════════════════════
+
+services:
+  # ── Backend Service ──
+  - type: web
+    name: facevoiceauth-backend
+    env: docker
+    dockerContext: .
+    dockerfilepath: docker/Dockerfile.backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: facevoiceauth-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: facevoiceauth-cache
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MASTER_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true
+
+  # ── Frontend Service ──
+  - type: web
+    name: facevoiceauth-frontend
+    env: docker
+    dockerContext: .
+    dockerfilepath: docker/Dockerfile.frontend
+    plan: free
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: facevoiceauth-backend
+          property: host
+
+databases:
+  - name: facevoiceauth-db
+    plan: free
+    databaseName: facevoiceauth
+    user: fva_user
+
+redis:
+  - name: facevoiceauth-cache
+    plan: free
+    ipAllowList: [] # Only allow internal connections

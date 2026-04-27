@@ -239,6 +239,34 @@ docker-compose -f docker-compose.prod.yml logs -f --tail=100
 
 ---
 
+## ☁️ Deploy to Render
+
+The easiest way to deploy the entire stack is using the **Render Blueprint**.
+
+### One-Click Deploy
+1. Push your code to your GitHub repository.
+2. Go to the **Blueprints** section in your [Render Dashboard](https://dashboard.render.com/blueprints).
+3. Connect this repository.
+4. Render will automatically detect the `render.yaml` file and set up:
+   - **PostgreSQL** (Managed Database)
+   - **Redis** (Managed Cache)
+   - **Backend** (FastAPI Docker container)
+   - **Frontend** (Nginx Docker container)
+
+### Manual Setup (Docker)
+If you prefer manual setup for each service:
+
+**1. Create a Web Service for Backend:**
+- **Runtime**: Docker
+- **Dockerfile Path**: `docker/Dockerfile.backend`
+- **Env Vars**: Add `DATABASE_URL`, `REDIS_URL`, `SECRET_KEY`, `MASTER_KEY`.
+
+**2. Create a Web Service for Frontend:**
+- **Runtime**: Docker
+- **Dockerfile Path**: `docker/Dockerfile.frontend`
+- **Env Vars**: Add `BACKEND_URL` pointing to your backend service.
+
+---
 
 ## 🏗 Jenkins Setup
 
