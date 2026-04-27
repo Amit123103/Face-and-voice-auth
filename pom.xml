@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.facevoiceauth</groupId>
+    <artifactId>facevoiceauth</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>FaceVoiceAuth Build Orchestrator</name>
+    <description>Maven-based build orchestration for the FaceVoiceAuth platform</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <IMAGE_TAG>${env.GIT_COMMIT_SHORT}</IMAGE_TAG>
+        <REGISTRY_URL>ghcr.io/facevoiceauth</REGISTRY_URL>
+        <BACKEND_URL>http://localhost:8000</BACKEND_URL>
+        <python.executable>python3</python.executable>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <env>development</env>
+                <BACKEND_URL>http://localhost:8000</BACKEND_URL>
+            </properties>
+        </profile>
+        <profile>
+            <id>staging</id>
+            <properties>
+                <env>staging</env>
+                <BACKEND_URL>https://staging.facevoiceauth.com</BACKEND_URL>
+            </properties>
+        </profile>
+        <profile>
+            <id>production</id>
+            <properties>
+                <env>production</env>
+                <BACKEND_URL>https://facevoiceauth.com</BACKEND_URL>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <!-- Run Python Lint -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>python-lint</id>
+                        <phase>validate</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>${python.executable}</executable>
+                            <arguments>
+                                <argument>-m</argument>
+                                <argument>flake8</argument>
+                                <argument>backend/</argument>
+                                <argument>--max-line-length=120</argument>
+                                <argument>--exclude=__pycache__,.venv</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>python-test</id>
+                        <phase>test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>${python.executable}</executable>
+                            <arguments>
+                                <argument>-m</argument>
+                                <argument>pytest</argument>
+                                <argument>backend/tests/</argument>
+                                <argument>--cov=backend</argument>
+                                <argument>--cov-report=xml:coverage.xml</argument>
+                                <argument>--junitxml=target/surefire-reports/TEST-pytest.xml</argument>
+                                <argument>-v</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Copy frontend assets to dist/ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-frontend</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>copy-resources</goal></goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/dist/frontend</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>frontend</directory>
+                                    <includes>
+                                        <include>**/*.html</include>
+                                        <include>**/*.css</include>
+                                        <include>**/*.js</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Docker Build & Push via fabric8 -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.44.0</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${REGISTRY_URL}/facevoiceauth-backend:${IMAGE_TAG}</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <dockerFile>docker/Dockerfile.backend</dockerFile>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${IMAGE_TAG}</tag>
+                                </tags>
+                            </build>
+                        </image>
+                        <image>
+                            <name>${REGISTRY_URL}/facevoiceauth-frontend:${IMAGE_TAG}</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <dockerFile>docker/Dockerfile.frontend</dockerFile>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${IMAGE_TAG}</tag>
+                                </tags>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>docker-build</id>
+                        <phase>package</phase>
+                        <goals><goal>build</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>docker-push</id>
+                        <phase>deploy</phase>
+                        <goals><goal>push</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Surefire — integrate pytest XML reports -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                    <reportsDirectory>${project.basedir}/target/surefire-reports</reportsDirectory>
+                </configuration>
+            </plugin>
+
+            <!-- Versions Plugin — check for dependency updates -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.2</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

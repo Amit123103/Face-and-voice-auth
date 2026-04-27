@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.prod
+secrets/
+
+# Database
+*.db
+*.sqlite3
+
+# Test & Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+test-results.xml
+.pytest_cache/
+.mypy_cache/
+bandit-report.json
+safety-report.json
+test_backups/
+
+# Models (large files)
+backend/models_data/*.dat
+pretrained_models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Java/Maven
+target/
+
+# Docker
+*.tar

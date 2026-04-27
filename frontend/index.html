@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FaceVoiceAuth — Enterprise tri-modal biometric authentication platform combining password, face recognition, and voice verification.">
+    <title>FaceVoiceAuth — Biometric Authentication Platform</title>
+    <!-- Preload critical font to avoid FOIT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inline critical CSS for instant first paint -->
+    <style>
+        /* Critical above-the-fold styles inlined to avoid render-blocking */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #0f0f1a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-indigo: #6366f1;
+            --accent-indigo-hover: #818cf8;
+            --accent-indigo-glow: rgba(99, 102, 241, 0.3);
+            --accent-teal: #14b8a6;
+            --accent-purple: #a855f7;
+            --surface: rgba(255, 255, 255, 0.05);
+            --surface-border: rgba(255, 255, 255, 0.10);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 300ms ease;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(20, 184, 166, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 64px;
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--surface-border);
+            z-index: 6000; display: flex; align-items: center;
+        }
+        .navbar .container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+        .navbar-brand { display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .navbar-brand .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 0.5rem; list-style: none; }
+        .navbar-nav a { padding: 0.5rem 1rem; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; transition: color var(--transition); text-decoration: none; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; }
+        .hero-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8rem 1.5rem 4rem; position: relative; z-index: 1; }
+        .hero h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.1; }
+        .hero p.subtitle { font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin-bottom: 2.5rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: var(--font-family); font-size: 0.9rem; font-weight: 500; border: 1px solid transparent; border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition); outline: none; white-space: nowrap; text-decoration: none; position: relative; overflow: hidden; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-indigo), #4f46e5); color: white; box-shadow: 0 0 20px var(--accent-indigo-glow); }
+        .btn-secondary { background: var(--surface); color: var(--text-primary); border-color: var(--surface-border); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+        .btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+
+        /* Loading splash */
+        .app-loading {
+            position: fixed; inset: 0; z-index: 99999;
+            background: var(--bg-primary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .app-loading.loaded { opacity: 0; visibility: hidden; pointer-events: none; }
+        .app-loading .spinner-ring {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent-indigo);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .app-loading p { margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) { .hero h1 { font-size: 2.25rem; } }
+    </style>
+    <!-- Load full CSS asynchronously to avoid render-blocking -->
+    <link rel="stylesheet" href="css/main.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/glassmorphism.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/animations.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/glassmorphism.css">
+        <link rel="stylesheet" href="css/animations.css">
+    </noscript>
+</head>
+<body>
+    <!-- Fast loading splash screen -->
+    <div class="app-loading" id="app-loading">
+        <div class="spinner-ring"></div>
+        <p>Loading FaceVoiceAuth…</p>
+    </div>
+
+    <nav class="navbar" id="main-navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">🛡</div>
+                <span>FaceVoiceAuth</span>
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="/login.html" class="btn btn-secondary btn-sm">Sign In</a></li>
+                <li><a href="/register.html" class="btn btn-primary btn-sm">Get Started</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="hero-content animate-fade-in-up">
+            <h1><span class="gradient-text">Tri-Modal Biometric</span><br>Authentication</h1>
+            <p class="subtitle">Enterprise-grade security platform combining password protection, face recognition, and voice verification in a single seamless experience.</p>
+            <div class="hero-cta" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                <a href="/register.html" class="btn btn-primary btn-lg ripple">🚀 Start Free</a>
+                <a href="/login.html" class="btn btn-secondary btn-lg ripple">🔐 Sign In</a>
+            </div>
+            <div class="stats-row" style="display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap; justify-content: center;">
+                <div class="stat-item" style="text-align: center;">
+                    <div class="num count-up" style="font-size: 2rem; font-weight: 700; color: var(--accent-indigo);">128</div>
+                    <div class="lbl" style="font-size: 0.85rem; color: var(--text-muted);">Face Encoding Dims</div>
+                </div>
+                <div class="stat-item" style="text-align: center;">
+                    <div class="num count-up" style="font-size: 2rem; font-weight: 700; color: var(--accent-indigo);">256</div>
+                    <div class="lbl" style="font-size: 0.85rem; color: var(--text-muted);">Voice Embedding Dims</div>
+                </div>
+                <div class="stat-item" style="text-align: center;">
+                    <div class="num count-up" style="font-size: 2rem; font-weight: 700; color: var(--accent-indigo);">AES-256</div>
+                    <div class="lbl" style="font-size: 0.85rem; color: var(--text-muted);">Encryption Standard</div>
+                </div>
+                <div class="stat-item" style="text-align: center;">
+                    <div class="num count-up" style="font-size: 2rem; font-weight: 700; color: var(--accent-indigo);">99.7%</div>
+                    <div class="lbl" style="font-size: 0.85rem; color: var(--text-muted);">Accuracy Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section" id="features" style="padding: 5rem 0;">
+        <div class="container">
+            <h2 class="animate-fade-in-up" style="text-align: center; margin-bottom: 3rem;">Three Layers of Protection</h2>
+            <div class="feature-grid stagger-children">
+                <div class="feature-card tilt-card">
+                    <div class="feature-icon indigo">🔑</div>
+                    <h3>Password Auth</h3>
+                    <p>Bcrypt-hashed passwords with progressive lockout, TOTP 2FA, and session management. The foundation of your security.</p>
+                </div>
+                <div class="feature-card tilt-card">
+                    <div class="feature-icon teal">👁</div>
+                    <h3>Face Recognition</h3>
+                    <p>128-dimensional face encodings via dlib with multi-angle enrollment, blink detection, and anti-spoofing liveness checks.</p>
+                </div>
+                <div class="feature-card tilt-card">
+                    <div class="feature-icon purple">🎤</div>
+                    <h3>Voice Verification</h3>
+                    <p>ECAPA-TDNN speaker embeddings with challenge-response liveness, replay attack detection, and noise-robust matching.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="security-section" id="security" style="padding: 5rem 0; background: var(--bg-secondary);">
+        <div class="container">
+            <h2 class="text-center animate-fade-in-up" style="text-align: center;">Enterprise Security Architecture</h2>
+            <div class="security-grid stagger-children" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <div class="security-item glass-card" style="text-align: center; padding: 1.5rem;">
+                    <div class="icon" style="font-size: 2rem; margin-bottom: 0.75rem;">🔐</div>
+                    <h4 style="margin-bottom: 0.5rem;">AES-256-GCM</h4>
+                    <p>All biometric data encrypted at rest with per-user derived keys and key rotation support.</p>
+                </div>
+                <div class="security-item glass-card" style="text-align: center; padding: 1.5rem;">
+                    <div class="icon" style="font-size: 2rem; margin-bottom: 0.75rem;">🛡</div>
+                    <h4 style="margin-bottom: 0.5rem;">Liveness Detection</h4>
+                    <p>Blink detection, head motion challenge, texture analysis, and voice replay rejection prevent spoofing.</p>
+                </div>
+                <div class="security-item glass-card" style="text-align: center; padding: 1.5rem;">
+                    <div class="icon" style="font-size: 2rem; margin-bottom: 0.75rem;">🔗</div>
+                    <h4 style="margin-bottom: 0.5rem;">Score-Level Fusion</h4>
+                    <p>Weighted fusion of face and voice confidence scores ensures robust multi-modal verification.</p>
+                </div>
+                <div class="security-item glass-card" style="text-align: center; padding: 1.5rem;">
+                    <div class="icon" style="font-size: 2rem; margin-bottom: 0.75rem;">📋</div>
+                    <h4 style="margin-bottom: 0.5rem;">Full Audit Trail</h4>
+                    <p>Every request logged with IP, user-agent, timing, and correlation IDs for complete visibility.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" style="padding: 2rem 0; border-top: 1px solid var(--surface-border); text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        <div class="container">
+            <p>© 2024 FaceVoiceAuth. Enterprise Biometric Authentication Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Defer JS loading — not needed for first paint -->
+    <script src="js/utils.js?v=2" defer></script>
+    <script>
+        // Dismiss loading splash as soon as DOM + styles are ready
+        window.addEventListener('load', function() {
+            var loader = document.getElementById('app-loading');
+            if (loader) {
+                loader.classList.add('loaded');
+                setTimeout(function() { loader.remove(); }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

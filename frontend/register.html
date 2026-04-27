@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your FaceVoiceAuth account with multi-step biometric enrollment.">
+    <title>Register — FaceVoiceAuth</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/glassmorphism.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">🛡</div><span>FaceVoiceAuth</span>
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/login.html">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="auth-container" style="padding-top: 80px;">
+        <div class="auth-panel animate-scale-in" style="max-width: 560px;">
+            <div class="auth-header">
+                <h1>Create Account</h1>
+                <p id="reg-step-label">Step 1: Account Info</p>
+            </div>
+
+            <div class="progress" style="margin-bottom: 2rem;">
+                <div class="progress-bar progress-indigo" id="reg-progress-bar" style="width: 14%;"></div>
+            </div>
+
+            <!-- Step 1: Account Info -->
+            <div id="reg-step-1" class="tab-content active">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="reg-fullname">Full Name</label>
+                    <input type="text" class="form-input" id="reg-fullname" placeholder="John Doe" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="reg-email">Email</label>
+                    <input type="email" class="form-input" id="reg-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="reg-username">Username</label>
+                    <input type="text" class="form-input" id="reg-username" placeholder="johndoe" required>
+                </div>
+                <button class="btn btn-primary w-full ripple reg-next-btn">Continue →</button>
+            </div>
+
+            <!-- Step 2: Password -->
+            <div id="reg-step-2" class="tab-content hidden">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="reg-password">Password</label>
+                    <input type="password" class="form-input" id="reg-password" placeholder="••••••••" required
+                        oninput="renderPasswordStrength(document.getElementById('pw-strength-bar'), document.getElementById('pw-strength-label'), this.value)">
+                    <div class="password-strength">
+                        <div class="password-strength-bar strength-0" id="pw-strength-bar"></div>
+                    </div>
+                    <span class="form-hint" id="pw-strength-label"></span>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="reg-password-confirm">Confirm Password</label>
+                    <input type="password" class="form-input" id="reg-password-confirm" placeholder="••••••••" required>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-secondary flex-1 reg-prev-btn">← Back</button>
+                    <button class="btn btn-primary flex-1 ripple reg-next-btn">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Auth Modes -->
+            <div id="reg-step-3" class="tab-content hidden">
+                <p style="margin-bottom: 1.25rem; font-size: 0.9rem;">Choose how you want to authenticate:</p>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <label class="glass-card"
+                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
+                        <input type="radio" name="auth-mode" value="password" checked
+                            style="accent-color: var(--accent-indigo);">
+                        <div><strong>🔑 Password Only</strong><br><span
+                                style="font-size: 0.8rem; color: var(--text-muted);">Standard password
+                                authentication</span></div>
+                    </label>
+                    <label class="glass-card"
+                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
+                        <input type="radio" name="auth-mode" value="face" style="accent-color: var(--accent-teal);">
+                        <div><strong>👁 Face Recognition</strong><br><span
+                                style="font-size: 0.8rem; color: var(--text-muted);">Login with your face</span></div>
+                    </label>
+                    <label class="glass-card"
+                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
+                        <input type="radio" name="auth-mode" value="voice" style="accent-color: var(--accent-purple);">
+                        <div><strong>🎤 Voice Verification</strong><br><span
+                                style="font-size: 0.8rem; color: var(--text-muted);">Login with your voice</span></div>
+                    </label>
+                    <label class="glass-card"
+                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
+                        <input type="radio" name="auth-mode" value="face_voice"
+                            style="accent-color: var(--accent-indigo);">
+                        <div><strong>🔗 Face + Voice Combined</strong><br><span
+                                style="font-size: 0.8rem; color: var(--text-muted);">Highest security — both
+                                required</span></div>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-secondary flex-1 reg-prev-btn">← Back</button>
+                    <button class="btn btn-primary flex-1 ripple reg-next-btn">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Face Enrollment -->
+            <div id="reg-step-4" class="tab-content hidden">
+                <h3 style="margin-bottom: 1rem;">👁 Face Enrollment</h3>
+                <div class="biometric-viewport" style="margin: 0 auto 1rem;">
+                    <video id="face-enroll-video" autoplay playsinline muted></video>
+                    <canvas id="face-enroll-canvas"></canvas>
+                    <div class="viewport-guide"></div>
+                    <div class="scan-line"></div>
+                </div>
+                <div id="face-enroll-progress" class="enrollment-progress"></div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                    <button class="btn btn-secondary flex-1 reg-prev-btn" onclick="FaceEnroll.stop()">← Back</button>
+                    <button class="btn btn-teal flex-1 ripple" id="face-capture-btn"
+                        onclick="FaceEnroll.captureAngle()">📸 Capture</button>
+                    <button class="btn btn-primary flex-1 ripple reg-next-btn">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Voice Enrollment -->
+            <div id="reg-step-5" class="tab-content hidden">
+                <h3 style="margin-bottom: 1rem;">🎤 Voice Enrollment</h3>
+                <div class="glass-card" style="text-align: center; margin-bottom: 1rem;">
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Speak this PIN aloud:</p>
+                    <div id="voice-challenge-pin"
+                        style="font-size: 2.5rem; font-weight: 700; letter-spacing: 0.5rem; color: var(--accent-purple);">
+                        ----</div>
+                </div>
+                <p id="voice-instruction"
+                    style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;"></p>
+                <div class="waveform-container" style="margin-bottom: 1rem;">
+                    <canvas id="voice-enroll-waveform" class="waveform-canvas" width="500" height="80"></canvas>
+                    <span class="waveform-label" id="voice-enroll-timer">0.0s</span>
+                </div>
+                <div id="voice-sample-progress" style="margin-bottom: 1rem;"></div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-secondary" onclick="VoiceEnroll.stop()" style="flex:0.5;">← Back</button>
+                    <button class="btn btn-purple flex-1 ripple" id="voice-record-btn"
+                        onclick="VoiceEnroll.recordSample()">🎤 Record Sample</button>
+                    <button class="btn btn-primary flex-1 ripple" id="voice-complete-btn" disabled
+                        onclick="VoiceEnroll.complete().then(ok => { if(ok) RegistrationWizard.showStep(6); })">Complete
+                        ✓</button>
+                </div>
+            </div>
+
+            <!-- Step 6: 2FA Setup -->
+            <div id="reg-step-6" class="tab-content hidden">
+                <h3 style="margin-bottom: 1rem;">🔐 Two-Factor Authentication</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Add an extra layer of
+                    security with a TOTP authenticator app.</p>
+                <div id="totp-setup-area" style="text-align: center;">
+                    <button class="btn btn-primary ripple" onclick="setup2FA()">Setup 2FA</button>
+                    <button class="btn btn-ghost" onclick="RegistrationWizard.showStep(7)"
+                        style="margin-top: 0.75rem; display: block; width: 100%;">Skip for now</button>
+                </div>
+                <div id="totp-qr-area" class="hidden" style="text-align: center;">
+                    <img id="totp-qr-img" alt="TOTP QR Code"
+                        style="width: 200px; margin: 1rem auto; border-radius: 8px;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Scan with Google
+                        Authenticator or similar app</p>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <input type="text" class="form-input" id="totp-verify-code" placeholder="Enter 6-digit code"
+                            maxlength="6">
+                    </div>
+                    <button class="btn btn-primary w-full ripple" onclick="verify2FA()">Verify & Enable</button>
+                </div>
+            </div>
+
+            <!-- Step 7: Complete -->
+            <div id="reg-step-7" class="tab-content hidden" style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                <h2>All Set!</h2>
+                <p style="margin: 1rem 0 2rem;">Your account is ready. You can now sign in using your chosen
+                    authentication method.</p>
+                <button class="btn btn-primary btn-lg w-full ripple" onclick="RegistrationWizard.complete()">🚀 Go to
+                    Dashboard</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p style="font-size: 0.85rem;">Already have an account? <a href="/login.html">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/microphone.js"></script>
+    <script src="js/face_enroll.js"></script>
+    <script src="js/voice_enroll.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            RegistrationWizard.init();
+
+            document.querySelectorAll('input[name="auth-mode"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'face' || radio.value === 'face_voice') {
+                        setTimeout(() => FaceEnroll.init(), 300);
+                    }
+                    if (radio.value === 'voice' || radio.value === 'face_voice') {
+                        setTimeout(() => VoiceEnroll.start(), 300);
+                    }
+                });
+            });
+        });
+
+        async function setup2FA() {
+            try {
+                const data = await apiRequest('/api/auth/totp/setup', { method: 'POST' });
+                document.getElementById('totp-qr-img').src = 'data:image/png;base64,' + data.qr_code_base64;
+                hideElement('#totp-setup-area');
+                showElement('#totp-qr-area');
+
+                const backupEl = document.createElement('div');
+                backupEl.innerHTML = `<p style="font-size:0.8rem; color:var(--text-muted); margin-top:1rem;">Backup codes: <code>${data.backup_codes.join(', ')}</code></p>`;
+                document.getElementById('totp-qr-area').appendChild(backupEl);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function verify2FA() {
+            const code = document.getElementById('totp-verify-code').value.trim();
+            if (code.length !== 6) { showToast('Enter a 6-digit code', 'warning'); return; }
+            try {
+                await apiRequest('/api/auth/totp/verify', {
+                    method: 'POST',
+                    body: JSON.stringify({ code }),
+                });
+                showToast('2FA enabled!', 'success');
+                RegistrationWizard.showStep(7);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

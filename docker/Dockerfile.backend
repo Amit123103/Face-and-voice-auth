@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════
+# FaceVoiceAuth — Backend Dockerfile
+# Multi-stage build for fast, slim final image
+# ═══════════════════════════════════════════
+
+# ── Stage 1: Builder — install all Python deps ──
+FROM python:3.11-slim-bullseye AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    g++ \
+    libopenblas-dev liblapack-dev \
+    libjpeg-dev zlib1g-dev \
+    python3-dev \
+    wget curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Install Python dependencies first (cached layer)
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# Pre-download dlib face models (optional — graceful fallback if fails)
+RUN mkdir -p /models && \
+    (wget -q --timeout=30 -O /models/shape_predictor_68_face_landmarks.dat.bz2 \
+        http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2 && \
+    bunzip2 /models/shape_predictor_68_face_landmarks.dat.bz2 || true) && \
+    (wget -q --timeout=30 -O /models/dlib_face_recognition_resnet_model_v1.dat.bz2 \
+        http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2 && \
+    bunzip2 /models/dlib_face_recognition_resnet_model_v1.dat.bz2 || true)
+
+# ── Stage 2: Final — slim runtime image ──
+FROM python:3.11-slim-bullseye
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libopenblas0 liblapack3 \
+    libjpeg62-turbo \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g appuser -m -s /bin/bash appuser
+
+# Copy installed Python packages
+COPY --from=builder /install /usr/local
+
+# Copy pre-downloaded models (may be empty if download failed — that's OK)
+COPY --from=builder /models /app/backend/models_data
+
+WORKDIR /app
+
+# Copy backend source
+COPY backend/ ./backend/
+
+# Copy frontend for static file serving (backup — nginx handles this in docker)
+COPY frontend/ ./frontend/
+
+# Create directories and set permissions
+RUN mkdir -p /data/backups && chown -R appuser:appuser /app /data
+
+USER appuser
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://127.0.0.1:8000/health || exit 1
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    FACE_MODEL_DIR=/app/backend/models_data
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--log-level", "info"]

@@ -1,0 +1,19 @@
+# ═══════════════════════════════════════════
+# ML / Biometric Model Dependencies
+# Install AFTER core requirements.txt
+# These are optional — services degrade gracefully without them
+# ═══════════════════════════════════════════
+
+# Face Recognition (requires CMake + C++ build tools)
+dlib>=19.24.4
+
+# Voice Authentication
+torch>=2.2.2
+torchaudio>=2.2.2
+speechbrain>=1.0.0
+
+# Voice Liveness (Whisper-based challenge-response)
+# Install with: pip install openai-whisper --no-build-isolation
+openai-whisper>=20231117
+
+

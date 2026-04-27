@@ -1,0 +1,153 @@
+# ═══════════════════════════════════════════
+# Docker Compose — FaceVoiceAuth
+# Full stack: Backend + Frontend + PostgreSQL + Redis
+# Run: docker compose up --build
+# ═══════════════════════════════════════════
+
+services:
+  # ── FastAPI Backend ──
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: facevoiceauth-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - face_models:/app/backend/models_data
+      - backup_data:/data/backups
+    environment:
+      # Database — use PostgreSQL inside Docker
+      - DATABASE_URL=postgresql+asyncpg://fva_user:fva_password@postgres:5432/facevoiceauth
+      - ASYNC_DATABASE_URL=postgresql+asyncpg://fva_user:fva_password@postgres:5432/facevoiceauth
+      - DB_POOL_SIZE=10
+      - DB_MAX_OVERFLOW=20
+      # Redis
+      - REDIS_URL=redis://redis:6379/0
+      # Application
+      - APP_NAME=FaceVoiceAuth
+      - APP_VERSION=1.0.0
+      - ENVIRONMENT=development
+      - DEBUG=false
+      # JWT / Auth
+      - SECRET_KEY=change-me-to-a-random-64-char-hex-string-in-production-for-maximum-security-now
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      # Encryption
+      - MASTER_KEY=2r95HzpZ1/NUaOaEWX8zZP0Ek06wYd3IN3NTGkaqaI4=
+      # Face Recognition
+      - FACE_MATCH_THRESHOLD=0.45
+      - MIN_FACE_LIVENESS_SCORE=0.75
+      - FACE_MULTI_FRAME_COUNT=3
+      - FACE_MAX_ANGLES=5
+      - FACE_MODEL_DIR=/app/backend/models_data
+      # Voice Authentication
+      - VOICE_MATCH_THRESHOLD=0.82
+      - MIN_VOICE_LIVENESS_SCORE=0.80
+      - VOICE_MIN_SAMPLES=3
+      - VOICE_MAX_SAMPLES=10
+      - VOICE_MIN_DURATION=3.0
+      - VOICE_MAX_DURATION=10.0
+      - VOICE_MIN_SNR=15.0
+      - VOICE_CONSECUTIVE_MATCHES=2
+      # Biometric Fusion
+      - FACE_FUSION_WEIGHT=0.6
+      - VOICE_FUSION_WEIGHT=0.4
+      - FUSION_MIN_SCORE=0.80
+      - FUSION_INDIVIDUAL_MIN=0.60
+      # Lockout
+      - MAX_LOGIN_ATTEMPTS=5
+      - LOCKOUT_DURATION_SECONDS=60
+      # CORS — allow both frontend (nginx:80) and direct backend access
+      - CORS_ORIGINS=http://localhost,http://localhost:80,http://localhost:8000,http://localhost:3000
+      # Admin Seed
+      - ADMIN_EMAIL=admin@facevoiceauth.local
+      - ADMIN_PASSWORD=ChangeMe!2024Secure
+      # SMTP
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=amitakhil001@gmail.com
+      - SMTP_PASSWORD=uuir irmd eeld leju
+      # Backup
+      - BACKUP_DIR=/data/backups
+      - BACKUP_RETENTION_DAYS=30
+      # Rate Limiting
+      - RATE_LIMIT_LOGIN=10/minute
+      - RATE_LIMIT_FACE_ENROLL=3/minute
+      - RATE_LIMIT_VOICE_ENROLL=3/minute
+      - RATE_LIMIT_GENERAL=100/minute
+      # Performance
+      - BCRYPT_ROUNDS=10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    networks:
+      - fva-network
+
+  # ── Nginx Frontend ──
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: facevoiceauth-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+    networks:
+      - fva-network
+
+  # ── PostgreSQL Database ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: facevoiceauth-postgres
+    environment:
+      POSTGRES_DB: facevoiceauth
+      POSTGRES_USER: fva_user
+      POSTGRES_PASSWORD: fva_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fva_user -d facevoiceauth"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: always
+    networks:
+      - fva-network
+
+  # ── Redis Cache ──
+  redis:
+    image: redis:7-alpine
+    container_name: facevoiceauth-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: always
+    networks:
+      - fva-network
+
+volumes:
+  postgres_data:
+  face_models:
+  backup_data:
+
+networks:
+  fva-network:
+    driver: bridge

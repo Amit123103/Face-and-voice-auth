@@ -1,0 +1,89 @@
+# ═══════════════════════════════════════════
+# GitHub Actions — Security Scan (Scheduled Daily)
+# Trivy + OWASP Dependency-Check
+# ═══════════════════════════════════════════
+
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  trivy-scan:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f docker/Dockerfile.backend -t facevoiceauth-backend:scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'facevoiceauth-backend:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install safety
+        run: pip install safety
+
+      - name: Run dependency check
+        run: |
+          safety check -r backend/requirements.txt --output json > dependency-check.json || true
+
+      - name: Check for critical vulnerabilities
+        id: vuln_check
+        run: |
+          CRITICAL=$(python -c "
+          import json, sys
+          try:
+              data = json.load(open('dependency-check.json'))
+              vulns = data if isinstance(data, list) else data.get('vulnerabilities', [])
+              critical = [v for v in vulns if v.get('severity', '').lower() == 'critical']
+              print(len(critical))
+          except:
+              print(0)
+          ")
+          echo "Critical vulnerabilities found: $CRITICAL"
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "has_critical=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create issue for critical vulnerabilities
+        if: steps.vuln_check.outputs.has_critical == 'true'
+        uses: peter-evans/create-issue@v1
+        with:
+          title: '🚨 Critical vulnerabilities detected in dependencies'
+          body: |
+            The daily security scan has detected critical vulnerabilities in project dependencies.
+
+            Please review the dependency check results and update affected packages.
+
+            Scan date: ${{ github.event.schedule || 'Manual trigger' }}
+          labels: security, critical

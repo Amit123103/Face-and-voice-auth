@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="FaceVoiceAuth user dashboard — manage sessions, biometrics, and security settings.">
+    <title>Dashboard — FaceVoiceAuth</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/glassmorphism.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">🛡</div><span>FaceVoiceAuth</span>
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+                <li id="admin-link" class="hidden"><a href="/admin.html">Admin</a></li>
+                <li><button class="btn btn-ghost btn-sm" id="theme-toggle" title="Toggle Theme" onclick="toggleTheme()">🌓</button></li>
+                <li><button class="btn btn-ghost btn-sm" onclick="handleLogout()">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main class="container page-enter" style="padding-top: 96px; padding-bottom: 3rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+            <div>
+                <h1 id="dashboard-greeting">Welcome back</h1>
+                <p style="color: var(--text-muted);" id="dashboard-subtitle">Your security overview</p>
+            </div>
+            <div class="security-ring" id="security-ring"></div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+            <button class="tab-btn" onclick="switchTab('ledger')">Wallet & Ledger</button>
+            <button class="tab-btn" onclick="switchTab('documents')">Documents</button>
+            <button class="tab-btn" onclick="switchTab('vault')">Secure Vault</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Account Settings</button>
+        </div>
+
+        <div id="tab-overview" class="tab-pane active">
+            <div class="dashboard-grid" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <span class="stat-label">Auth Method</span>
+                    <span class="stat-value" id="dash-auth-mode" style="font-size: 1.2rem;">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Last Login</span>
+                    <span class="stat-value" id="dash-last-login" style="font-size: 1rem;">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Face Status</span>
+                    <span class="stat-value" id="dash-face-status" style="font-size: 1rem;">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Voice Status</span>
+                    <span class="stat-value" id="dash-voice-status" style="font-size: 1rem;">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">2FA Status</span>
+                    <span class="stat-value" id="dash-2fa-status" style="font-size: 1rem;">—</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3>Active Sessions</h3>
+                    <span class="badge" id="dash-session-count" style="margin-left:auto; margin-right:1rem;">—</span>
+                    <button class="btn btn-danger btn-sm" onclick="revokeAllSessions()">Revoke All Others</button>
+                </div>
+                <div id="sessions-list">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 70%;"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/register.html" class="btn btn-teal btn-sm">👁 Manage Face Enrollment</a>
+                    <a href="/register.html" class="btn btn-purple btn-sm">🎤 Manage Voice Enrollment</a>
+                    <button class="btn btn-secondary btn-sm" onclick="setup2FAFromDashboard()">🔐 Setup 2FA</button>
+                    <button class="btn btn-primary btn-sm" onclick="openVoicePasswordModal()">🎙️ Manage Voice Password</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-ledger" class="tab-pane" style="display: none;">
+            <div class="dashboard-grid" style="margin-bottom: 2rem; grid-template-columns: 1fr;">
+                <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.2)); border-color: var(--teal);">
+                    <span class="stat-label">Wallet Balance</span>
+                    <span class="stat-value" id="dash-balance" style="font-size: 2.5rem; color: var(--teal);">$—</span>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%; max-width: 200px;" onclick="openSendMoneyModal()">💸 Send Money</button>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3>Transaction History</h3>
+                </div>
+                <div id="transactions-list">
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-documents" class="tab-pane" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem; text-align: center; border: 2px dashed var(--surface-border); background: var(--surface-hover);">
+                <h3>Upload Document</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">PDF, Images, or Text Files (Max 10MB)</p>
+                <input type="file" id="doc-upload-input" style="display: none;" onchange="handleDocumentUpload(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('doc-upload-input').click()">Select File</button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>My Documents</h3>
+                </div>
+                <div id="documents-list">
+                    <p style="color: var(--text-muted); padding: 1rem;">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-vault" class="tab-pane" style="display: none;">
+            <div style="display: grid; grid-template-columns: 200px 1fr; gap: 2rem;">
+                <!-- Vault Sidebar -->
+                <div class="card" style="padding: 1rem; align-self: start;">
+                    <h4 style="margin-bottom: 1rem;">🗂 Categories</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="btn btn-ghost btn-sm active" style="justify-content: start;" onclick="filterVault('All')">📂 All Secrets</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVault('Personal')">🏠 Personal Vault</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVault('Work')">💼 Work Secrets</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVault('Business')">🏢 Business Data</button>
+                    </div>
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--surface-border);">
+                    <h4 style="margin-bottom: 1rem;">🔒 Filter Type</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVaultType('Financial')">💰 Financial Details</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVaultType('Password')">🔑 Passwords</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVaultType('ID')">📎 Documents & IDs</button>
+                        <button class="btn btn-ghost btn-sm" style="justify-content: start;" onclick="filterVaultType('Note')">📝 Private Notes</button>
+                    </div>
+                </div>
+
+                <div class="vault-main-content">
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <h3>Secure Secret Vault</h3>
+                            <button class="btn btn-primary btn-sm" onclick="openVaultModal()">➕ Add New Secret</button>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Your private keys, property locations, and secrets are encrypted end-to-end with your unique key.</p>
+                        <div id="vault-list" class="dashboard-grid">
+                            <p style="color: var(--text-muted); padding: 1rem;">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-pane" style="display: none;">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header"><h3>Security Settings</h3></div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-weight: 600;">Two-Factor Authentication (2FA)</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Use TOTP apps like Google Authenticator</div>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="setup2FAFromDashboard()">Configure</button>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-weight: 600;">Change Password</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Update your master login password</div>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="showToast('Password change modal coming soon', 'info')">Update</button>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-weight: 600;">Connected Devices</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">List of browsers currently logged in</div>
+                            </div>
+                            <span class="badge" id="settings-device-count">1 Device</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>Login Activity</h3></div>
+                    <div id="activity-logs" style="margin-top: 1rem; max-height: 400px; overflow-y: auto;">
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modals -->
+        <div id="transfer-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card" style="width: 400px; max-width: 90%;">
+                <h3>Initiate Transfer</h3>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Receiver Email</label>
+                    <input type="email" id="transfer-email" class="form-control" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" id="transfer-amount" class="form-control" placeholder="10.00" min="1">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="submitTransfer()">Create Transaction</button>
+                    <button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('transfer-modal').style.display='none'">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="face-verify-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;">
+            <div class="card" style="width: 400px; max-width: 90%; text-align: center;">
+                <h3>Biometric Authorization</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Please scan your face to sign this transaction.</p>
+                <div style="position: relative; width: 100%; max-width: 300px; margin: 1rem auto; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; border: 2px solid var(--teal);">
+                    <video id="txn-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                </div>
+                <button id="txn-scan-btn" class="btn btn-teal" style="width: 100%; margin-top: 1rem;" onclick="executeTransactionScan()">Start Scan</button>
+                <button class="btn btn-ghost" style="width: 100%; margin-top: 0.5rem;" onclick="closeFaceVerifyModal()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="vault-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card" style="width: 550px; max-width: 95%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 id="vault-modal-title">New Secure Secret</h3>
+                    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('vault-modal').style.display='none'">✕</button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="vault-category" class="form-control">
+                            <option value="Personal">🏠 Personal Vault</option>
+                            <option value="Work">💼 Work Secrets</option>
+                            <option value="Business">🏢 Business Data</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Secret Type</label>
+                        <select id="vault-type" class="form-control" onchange="updateVaultFields()">
+                            <option value="Note">📝 Private Note</option>
+                            <option value="Financial">💰 Financial Details</option>
+                            <option value="Password">🔑 Password Manager</option>
+                            <option value="ID">📎 Documents & IDs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="vault-note-title" class="form-control" placeholder="Hidden Treasure...">
+                </div>
+
+                <!-- Dynamic Fields Container -->
+                <div id="vault-dynamic-fields" style="margin-top: 1rem; padding: 1rem; background: var(--surface); border-radius: var(--radius-md);">
+                    <div class="form-group">
+                        <label>Secret Content</label>
+                        <textarea id="vault-note-content" class="form-control" style="min-height: 120px;" placeholder="Lat: 34.05, Long: -118.24..."></textarea>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="saveVaultNote()">🛡️ Encrypt & Save</button>
+                    <button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('vault-modal').style.display='none'">Cancel</button>
+                </div>
+                <input type="hidden" id="vault-note-id" value="">
+            </div>
+        </div>
+
+        <!-- Voice Password Modal -->
+        <div id="voice-pass-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card" style="width: 450px; max-width: 95%; text-align: center;">
+                <h3>🛡️ Secure Voice Password</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 1rem 0;">Record a secret phrase (e.g., "The eagle lands at midnight") to use as your voice password.</p>
+                
+                <div id="vpass-status" style="margin-bottom: 1rem; padding: 0.5rem; border-radius: 4px; background: var(--surface-hover); font-weight: 500;">
+                    Ready to record
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button id="vpass-record-btn" class="btn btn-purple" style="height: 60px; font-size: 1.2rem;" onclick="toggleVoicePassRecording()">🔴 Start Recording</button>
+                    <div id="vpass-preview" style="display: none;">
+                         <p style="font-size: 0.8rem; color: var(--text-muted);">Detected transcription:</p>
+                         <p id="vpass-text" style="font-weight: bold; color: var(--teal);"></p>
+                         <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" onclick="saveVoicePassphrase()">Confirm & Enable</button>
+                    </div>
+                    <button class="btn btn-ghost" onclick="closeVoicePassModal()">Cancel</button>
+                    <button id="vpass-disable-btn" class="btn btn-danger btn-sm" style="display: none;" onclick="disableVoicePassphrase()">Disable Current Password</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/transactions.js"></script>
+    <script src="js/dashboard_theme.js"></script>
+    <script src="js/vault_manager.js"></script>
+    <script src="js/settings_manager.js"></script>
+    <script src="js/dashboard_features.js"></script>
+    <script src="js/voice_password.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth()) return;
+            
+            // Initialize Theme
+            if (typeof initTheme === 'function') initTheme();
+
+            try {
+                const user = await apiRequest('/api/auth/me');
+                TokenStore.setUserData(user);
+
+                document.getElementById('dashboard-greeting').textContent = `Welcome, ${user.full_name}`;
+                document.getElementById('dash-auth-mode').textContent = user.auth_mode.replace('_', ' + ').toUpperCase();
+                document.getElementById('dash-last-login').textContent = formatTimeAgo(user.last_login_at);
+                document.getElementById('dash-face-status').innerHTML = user.face_enrolled
+                    ? '<span class="badge badge-success">Enrolled</span>'
+                    : '<span class="badge badge-warning">Not Enrolled</span>';
+                document.getElementById('dash-voice-status').innerHTML = user.voice_enrolled
+                    ? '<span class="badge badge-success">Enrolled</span>'
+                    : '<span class="badge badge-warning">Not Enrolled</span>';
+                document.getElementById('dash-2fa-status').innerHTML = user.totp_enabled
+                    ? '<span class="badge badge-success">Enabled</span>'
+                    : '<span class="badge badge-warning">Disabled</span>';
+
+                renderSecurityRing('#security-ring', user.security_score);
+
+                document.getElementById('dash-balance').textContent = `$${parseFloat(user.balance || 0).toFixed(2)}`;
+
+                if (user.role === 'admin') showElement('#admin-link');
+
+                const sessions = await apiRequest('/api/auth/sessions');
+                document.getElementById('dash-session-count').textContent = sessions.total_count;
+                const devCountEl = document.getElementById('settings-device-count');
+                if (devCountEl) devCountEl.textContent = `${sessions.total_count} Device(s)`;
+
+                const sessionsHtml = sessions.sessions.map(s => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--surface-border);">
+                        <div>
+                            <div style="font-weight: 500;">${s.auth_method} · ${s.ip_address || 'Unknown IP'}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Active ${formatTimeAgo(s.last_activity)}</div>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="revokeSession('${s.id}')">Revoke</button>
+                    </div>
+                `).join('');
+                document.getElementById('sessions-list').innerHTML = sessionsHtml || '<p style="color: var(--text-muted); padding: 1rem;">No active sessions</p>';
+
+                await loadTransactions();
+                await loadDocuments();
+                await loadVaultNotes();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.style.display = 'none');
+            
+            const activeBtn = document.querySelector(`button[onclick="switchTab('${tabId}')"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            const activePane = document.getElementById(`tab-${tabId}`);
+            if (activePane) activePane.style.display = 'block';
+
+            if (tabId === 'settings' && typeof loadActivityLogs === 'function') {
+                loadActivityLogs();
+            }
+        }
+
+        async function revokeSession(id) {
+            try {
+                await apiRequest(`/api/auth/sessions/${id}`, { method: 'DELETE' });
+                showToast('Session revoked', 'success');
+                location.reload();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function revokeAllSessions() {
+            if (!confirm('Revoke all other sessions?')) return;
+            try {
+                await apiRequest('/api/auth/sessions', { method: 'DELETE' });
+                showToast('All other sessions revoked', 'success');
+                location.reload();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function setup2FAFromDashboard() {
+            try {
+                const data = await apiRequest('/api/auth/totp/setup', { method: 'POST' });
+                const code = prompt(`Scan QR code (secret: ${data.secret}) and enter the 6-digit code:`);
+                if (code) {
+                    await apiRequest('/api/auth/totp/verify', { method: 'POST', body: JSON.stringify({ code }) });
+                    showToast('2FA enabled!', 'success');
+                    location.reload();
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

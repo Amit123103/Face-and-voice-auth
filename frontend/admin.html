@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="FaceVoiceAuth admin panel — user management, audit logs, system health, and backups.">
+    <title>Admin Panel — FaceVoiceAuth</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/glassmorphism.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">🛡</div><span>FaceVoiceAuth <span class="badge badge-primary">Admin</span></span>
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/dashboard.html">Dashboard</a></li>
+                <li><a href="/admin.html" class="active">Admin</a></li>
+                <li><button id="theme-toggle" class="btn btn-ghost btn-sm">🌓 Theme</button></li>
+                <li><button class="btn btn-ghost btn-sm" onclick="handleLogout()">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="admin-layout container" style="margin-top: 2rem;">
+        <aside class="admin-sidebar glass">
+            <div class="sidebar-header">
+                <h3>Admin Console</h3>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item active" data-section="overview">📊 Overview</li>
+                <li class="sidebar-item" data-section="users">👥 User Directory</li>
+                <li class="sidebar-item" data-section="ledger">💰 Global Ledger</li>
+                <li class="sidebar-item" data-section="audit">📋 Master Audit</li>
+                <li class="sidebar-item" data-section="health">💚 System Health</li>
+                <li class="sidebar-item" data-section="backups">💾 Cloud Backups</li>
+            </ul>
+        </aside>
+
+        <main class="admin-content">
+            <!-- Overview Section -->
+            <div id="admin-overview" class="admin-section">
+                <div class="stats-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-card glass">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Users</span>
+                            <h3 id="stat-total-users">--</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Sessions</span>
+                            <h3 id="stat-active-sessions">--</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Security Avg</span>
+                            <h3 id="stat-security-avg">--%</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Threats (24h)</span>
+                            <h3 id="stat-failed-logins">--</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3>System Ready</h3>
+                    <p class="text-muted">Biometric models (Face/Voice) are initialized and standing by.</p>
+                </div>
+            </div>
+
+            <!-- Financial Ledger Section -->
+            <div id="admin-ledger" class="admin-section hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Global Ledger Oversight</h2>
+                </div>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-table-body">
+                            <tr><td colspan="6" style="text-align:center; padding:1rem;">Syncing network...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="admin-users" class="admin-section hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>User Directory <span id="users-count" class="badge"></span></h2>
+                </div>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Security Score</th>
+                                <th>Biometrics</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audit Log Section -->
+            <div id="admin-audit" class="admin-section hidden">
+                <h2>Master Audit Log</h2>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+                    <input type="text" class="form-input" id="audit-user-id" placeholder="Filter by User ID/Action..." style="max-width: 400px;">
+                </div>
+                <div class="table-container glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-log-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- System Health Section -->
+            <div id="admin-health" class="admin-section hidden">
+                <h2 style="margin-bottom: 1.5rem;">Core Health Metrics</h2>
+                <div id="health-content" class="glass" style="padding: 1.5rem;">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+
+            <!-- Backups Section -->
+            <div id="admin-backups" class="admin-section hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Encryption & Backups</h2>
+                    <button class="btn btn-primary" onclick="AdminPanel.triggerBackup()">💾 Create Snapshot</button>
+                </div>
+                <div id="backups-list" class="glass" style="padding: 1rem;">
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard_theme.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPanel.init();
+        });
+    </script>
+</body>
+</html>

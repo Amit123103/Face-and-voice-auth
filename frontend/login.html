@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to FaceVoiceAuth using password, face, voice, or combined biometric authentication.">
+    <title>Sign In — FaceVoiceAuth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inline critical CSS for instant paint -->
+    <style>
+        :root {
+            --bg-primary: #0a0a0f; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
+            --accent-indigo: #6366f1; --accent-purple: #a855f7;
+            --surface: rgba(255,255,255,0.05); --surface-border: rgba(255,255,255,0.10);
+            --radius-sm: 8px; --radius-md: 12px; --radius-xl: 24px;
+            --transition: 300ms ease;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 20%,rgba(99,102,241,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(168,85,247,.06) 0%,transparent 50%); pointer-events: none; z-index: 0; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--surface-border); z-index: 6000; display: flex; align-items: center; }
+        .navbar .container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+        .navbar-brand { display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .navbar-brand .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg,var(--accent-indigo),var(--accent-purple)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+        .auth-panel { width: 100%; max-width: 480px; background: rgba(255,255,255,0.04); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-xl); padding: 2.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.5); position: relative; z-index: 1; }
+        .app-loading { position: fixed; inset: 0; z-index: 99999; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        .app-loading.loaded { opacity: 0; visibility: hidden; pointer-events: none; }
+        .app-loading .spinner-ring { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-indigo); border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .app-loading p { margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <link rel="stylesheet" href="css/main.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/glassmorphism.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/animations.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/glassmorphism.css">
+        <link rel="stylesheet" href="css/animations.css">
+    </noscript>
+</head>
+<body>
+    <!-- Loading splash -->
+    <div class="app-loading" id="app-loading">
+        <div class="spinner-ring"></div>
+        <p>Loading Sign In…</p>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand"><div class="logo-icon">🛡</div><span>FaceVoiceAuth</span></a>
+            <ul class="navbar-nav" style="display:flex;align-items:center;gap:.5rem;list-style:none;">
+                <li><a href="/register.html" style="color:var(--text-secondary);text-decoration:none;padding:.5rem 1rem;">Create Account</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="auth-container" style="padding-top: 80px;">
+        <div class="auth-panel animate-scale-in" style="max-width: 560px;">
+            <div class="auth-header" style="text-align:center;margin-bottom:2rem;">
+                <h1 style="font-size:1.75rem;margin-bottom:.5rem;">Welcome Back</h1>
+                <p style="font-size:.9rem;color:var(--text-muted);">Choose your authentication method</p>
+            </div>
+
+            <div class="tabs" id="login-tabs" style="margin-bottom: 1.5rem;">
+                <button class="tab active" data-tab="password" onclick="switchLoginTab('password')">🔑 Password</button>
+                <button class="tab" data-tab="face" onclick="switchLoginTab('face')">👁 Face</button>
+                <button class="tab" data-tab="voice" onclick="switchLoginTab('voice')">🎤 Voice</button>
+                <button class="tab" data-tab="biometric" onclick="switchLoginTab('biometric')">🔗 Face+Voice</button>
+            </div>
+
+            <!-- Password Login -->
+            <div class="tab-content active" id="tab-password">
+                <form onsubmit="handlePasswordLogin(event)" id="password-login-form">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="login-email">Email</label>
+                        <input type="email" class="form-input" id="login-email" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" class="form-input" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group hidden" id="totp-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="login-totp">2FA Code</label>
+                        <input type="text" class="form-input" id="login-totp" placeholder="000000" maxlength="6" pattern="\d{6}" autocomplete="one-time-code">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full ripple" style="margin-top: 0.5rem;">🔐 Sign In</button>
+                </form>
+            </div>
+
+            <!-- Face Login -->
+            <div class="tab-content" id="tab-face">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="face-login-email">Email</label>
+                    <input type="email" class="form-input" id="face-login-email" placeholder="you@example.com" required>
+                </div>
+                <div class="biometric-viewport" style="margin: 1rem auto;">
+                    <video id="face-login-video" autoplay playsinline muted></video>
+                    <canvas id="face-login-canvas"></canvas>
+                    <div class="scan-line" style="display: none;"></div>
+                    <div class="viewport-guide"></div>
+                </div>
+                <div id="face-auth-pipeline" class="auth-pipeline" style="margin: 1rem 0;"></div>
+                <div id="face-confidence-meter" class="confidence-meter" style="margin-bottom: 1rem;"></div>
+                <button class="btn btn-teal w-full ripple" id="face-verify-btn" onclick="FaceLogin.verify()">🔍 Verify Face</button>
+            </div>
+
+            <!-- Voice Login -->
+            <div class="tab-content" id="tab-voice">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="voice-login-email">Email</label>
+                    <input type="email" class="form-input" id="voice-login-email" placeholder="you@example.com" required>
+                </div>
+                <div class="waveform-container" style="margin: 1rem 0;">
+                    <canvas id="voice-login-waveform" class="waveform-canvas" width="500" height="80"></canvas>
+                    <span class="waveform-label" id="voice-login-timer">0.0s</span>
+                </div>
+                <div id="voice-confidence-meter" class="confidence-meter" style="margin-bottom: 1rem;"></div>
+                <button class="btn btn-purple w-full ripple" id="voice-verify-btn" onclick="VoiceLogin.verify()">🎤 Verify Voice</button>
+            </div>
+
+            <!-- Face + Voice Combined -->
+            <div class="tab-content" id="tab-biometric">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="bio-login-email">Email</label>
+                    <input type="email" class="form-input" id="bio-login-email" placeholder="you@example.com" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div>
+                        <div class="biometric-viewport" style="aspect-ratio: 4/3;">
+                            <video id="bio-video" autoplay playsinline muted></video>
+                            <canvas id="bio-canvas"></canvas>
+                            <div class="viewport-guide"></div>
+                        </div>
+                        <div id="bio-face-confidence" class="confidence-meter" style="margin-top: 0.5rem;"></div>
+                        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Face Confidence</div>
+                    </div>
+                    <div>
+                        <div class="waveform-container" style="height: 100%;">
+                            <canvas id="bio-waveform" class="waveform-canvas" width="250" height="120"></canvas>
+                        </div>
+                        <div id="bio-voice-confidence" class="confidence-meter" style="margin-top: 0.5rem;"></div>
+                        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Voice Confidence</div>
+                    </div>
+                </div>
+                <div id="bio-auth-pipeline" class="auth-pipeline" style="margin: 1rem 0;"></div>
+                <div id="bio-fusion-score" class="confidence-meter" style="margin-bottom: 0.5rem;"></div>
+                <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Fusion Score</div>
+                <button class="btn btn-primary w-full btn-lg ripple" id="bio-verify-btn" onclick="BiometricLogin.verify()">🔐 Verify Identity</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p style="font-size: 0.85rem;">Don't have an account? <a href="/register.html">Create one</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Defer all JS to avoid blocking first paint -->
+    <script src="js/utils.js?v=2" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script src="js/camera.js" defer></script>
+    <script src="js/microphone.js" defer></script>
+    <script src="js/face_login.js" defer></script>
+    <script src="js/voice_login.js" defer></script>
+    <script src="js/biometric_login.js" defer></script>
+    <script>
+        let activeTab = 'password';
+
+        function switchLoginTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (activeTab === 'face' && typeof FaceLogin !== 'undefined') FaceLogin.stop();
+            if (activeTab === 'voice' && typeof VoiceLogin !== 'undefined') VoiceLogin.stop();
+            if (activeTab === 'biometric' && typeof BiometricLogin !== 'undefined') BiometricLogin.stop();
+
+            activeTab = tab;
+
+            if (tab === 'face' && typeof FaceLogin !== 'undefined') FaceLogin.init();
+            if (tab === 'voice' && typeof VoiceLogin !== 'undefined') VoiceLogin.init();
+            if (tab === 'biometric' && typeof BiometricLogin !== 'undefined') BiometricLogin.init();
+        }
+
+        // Dismiss loading splash
+        window.addEventListener('load', function() {
+            var loader = document.getElementById('app-loading');
+            if (loader) {
+                loader.classList.add('loaded');
+                setTimeout(function() { loader.remove(); }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

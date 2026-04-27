@@ -1,0 +1,44 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+
+# Database files (don't ship local dev databases)
+*.db
+*.sqlite3
+
+# Git
+.git
+.github
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Test / Coverage
+htmlcov
+.coverage
+coverage.xml
+test-results.xml
+.pytest_cache
+.mypy_cache
+
+# Build artifacts
+*.egg-info
+dist
+build
+node_modules
+
+# Security reports
+bandit-report.json
+safety-report.json
+
+# Dev files
+test_backups
+pretrained_models
+*.md
+!README.md

@@ -1,0 +1,14 @@
+{
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Windows",
+    "venvPath": "",
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "pythonVersion": "3.11"
+        }
+    ],
+    "reportMissingModuleSource": "none",
+    "reportMissingImports": "warning",
+    "typeCheckingMode": "basic"
+}
