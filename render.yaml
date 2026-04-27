@@ -39,11 +39,13 @@ services:
     dockerfilepath: docker/Dockerfile.frontend
     plan: free
     envVars:
-      - key: BACKEND_URL
+      - key: BACKEND_HOST
         fromService:
           type: web
           name: facevoiceauth-backend
           property: host
+      - key: BACKEND_PORT
+        value: 8000
 
 databases:
   - name: facevoiceauth-db
