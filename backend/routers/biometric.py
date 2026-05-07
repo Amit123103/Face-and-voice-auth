@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, BackgroundTasks
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
@@ -46,7 +46,7 @@ async def biometric_login(
         raise HTTPException(status_code=400, detail="Email is required")
 
     user_result = await db.execute(
-        select(User).where(and_(User.email == email, User.deleted_at.is_(None)))
+        select(User).where(and_(func.lower(User.email) == email.strip().lower(), User.deleted_at.is_(None)))
     )
     user = user_result.scalar_one_or_none()
     if not user:

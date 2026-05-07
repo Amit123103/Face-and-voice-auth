@@ -270,13 +270,82 @@ If you prefer manual setup for each service:
 
 ## 🏗 Jenkins Setup
 
-1. Install Jenkins plugins: Pipeline, Docker Pipeline, SSH Agent, GitHub
-2. Create pipeline job pointing to this repo's `Jenkinsfile`
-3. Configure credentials:
-   - `docker-hub-credentials` — Docker registry login
-   - `staging-ssh-key` — SSH key for staging server
-   - `prod-ssh-key` — SSH key for production server
-4. Set up GitHub webhook for push triggers
+To configure and run the CI/CD pipeline for **FaceVoiceAuth** via Jenkins, follow this comprehensive step-by-step setup guide.
+
+### 📋 Prerequisites
+
+1. **Jenkins Server**: Ensure you have Jenkins installed on a Linux/Docker host.
+2. **Tools Installed on Jenkins Agent**:
+   - **Docker** and **Docker Compose** installed.
+   - The `jenkins` user must be in the `docker` group: `sudo usermod -aG docker jenkins` (restart Jenkins after adding).
+   - **Python 3.10+** (with `pip` and `venv`) installed on the agent.
+   - **Git** installed on the agent.
+
+---
+
+### 🧩 Step 1: Install Required Jenkins Plugins
+
+Go to **Manage Jenkins** > **Plugins** > **Available Plugins** and install the following if not already present:
+
+- `Pipeline` (Core Jenkins pipeline features)
+- `Docker Pipeline` (For building/running Docker images inside the pipeline)
+- `SSH Agent` (For staging/production SSH deployments)
+- `GitHub Integration` (For automatic triggers via webhooks)
+- `JUnit` (For publishing test results)
+- `HTML Publisher` (For publishing the coverage reports)
+
+---
+
+### 🔑 Step 2: Configure Credentials in Jenkins
+
+Navigate to **Manage Jenkins** > **Credentials** > **System** > **Global credentials (unrestricted)**. Add the following credentials to align with the variables in the `Jenkinsfile`:
+
+| ID | Type | Secret/Value | Purpose |
+|----|------|--------------|---------|
+| `REGISTRY_URL` | Secret text | `docker.io` (or your registry) | URL of your container registry |
+| `docker-hub-credentials` | Username with password | Your Docker ID & Access Token | Registry login credentials |
+| `staging-ssh-host` | Secret text | IP or Domain of Staging Host | Host address for staging deployments |
+| `prod-ssh-host` | Secret text | IP or Domain of Prod Host | Host address for production deployments |
+| `staging-ssh-key` | SSH Username with private key | User: `deploy` + private key | SSH key to connect to Staging server |
+| `prod-ssh-key` | SSH Username with private key | User: `deploy` + private key | SSH key to connect to Production server |
+
+---
+
+### 🔨 Step 3: Create and Configure the Pipeline Job
+
+1. From the Jenkins dashboard, click **New Item**.
+2. Enter the item name: **`FaceVoiceAuth-Pipeline`**, select **Pipeline**, and click **OK**.
+3. Under the **General** tab:
+   - Check **GitHub project** and enter your repository URL: `https://github.com/YourUsername/facevoiceauth.git`.
+4. Under the **Build Triggers** tab:    
+   - Check **GitHub hook trigger for GITScm polling** to allow webhook-triggered builds on every code push.
+5. Under the **Pipeline** section at the bottom:
+   - For **Definition**, select **Pipeline script from SCM**.
+   - For **SCM**, select **Git**.
+   - For **Repository URL**, enter your Git repository URL.
+   - For **Credentials**, select your Git credentials if it's a private repo.
+   - For **Branch Specifier**, enter `*/main` (or match your main branch).
+   - For **Script Path**, ensure it's set to **`Jenkinsfile`** (this is located at the root of the workspace).
+6. Click **Save**.
+
+---
+
+### 🔄 Step 4: Add Webhook in GitHub
+
+To trigger automatic builds when changes are pushed:
+
+1. Go to your repository on **GitHub** > **Settings** > **Webhooks** > **Add webhook**.
+2. Set the **Payload URL** to: `http://<your-jenkins-server-url>:8080/github-webhook/`.
+3. Set **Content type** to: `application/json`.
+4. Leave other settings as default, select **Just the push event**, and click **Add webhook**.
+
+---
+
+### 🚀 Step 5: Run Your First Build
+
+1. Back on the Jenkins job page, click **Build Now** in the left sidebar.
+2. Jenkins will checkout the source code, run parallel format & lint tests, execute backend unit tests, build Docker containers, perform smoke tests, push them to Docker Hub, and wait for deployment review or directly deploy depending on branch setup.
+3. You can review unit tests using the **Test Result** tab and view the HTML coverage reports via the **Coverage Report** tab.
 
 ---
 

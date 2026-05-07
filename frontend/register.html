@@ -72,47 +72,8 @@
                 </div>
             </div>
 
-            <!-- Step 3: Auth Modes -->
+            <!-- Step 3: Face Enrollment -->
             <div id="reg-step-3" class="tab-content hidden">
-                <p style="margin-bottom: 1.25rem; font-size: 0.9rem;">Choose how you want to authenticate:</p>
-                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
-                    <label class="glass-card"
-                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
-                        <input type="radio" name="auth-mode" value="password" checked
-                            style="accent-color: var(--accent-indigo);">
-                        <div><strong>🔑 Password Only</strong><br><span
-                                style="font-size: 0.8rem; color: var(--text-muted);">Standard password
-                                authentication</span></div>
-                    </label>
-                    <label class="glass-card"
-                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
-                        <input type="radio" name="auth-mode" value="face" style="accent-color: var(--accent-teal);">
-                        <div><strong>👁 Face Recognition</strong><br><span
-                                style="font-size: 0.8rem; color: var(--text-muted);">Login with your face</span></div>
-                    </label>
-                    <label class="glass-card"
-                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
-                        <input type="radio" name="auth-mode" value="voice" style="accent-color: var(--accent-purple);">
-                        <div><strong>🎤 Voice Verification</strong><br><span
-                                style="font-size: 0.8rem; color: var(--text-muted);">Login with your voice</span></div>
-                    </label>
-                    <label class="glass-card"
-                        style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 1rem;">
-                        <input type="radio" name="auth-mode" value="face_voice"
-                            style="accent-color: var(--accent-indigo);">
-                        <div><strong>🔗 Face + Voice Combined</strong><br><span
-                                style="font-size: 0.8rem; color: var(--text-muted);">Highest security — both
-                                required</span></div>
-                    </label>
-                </div>
-                <div style="display: flex; gap: 0.75rem;">
-                    <button class="btn btn-secondary flex-1 reg-prev-btn">← Back</button>
-                    <button class="btn btn-primary flex-1 ripple reg-next-btn">Continue →</button>
-                </div>
-            </div>
-
-            <!-- Step 4: Face Enrollment -->
-            <div id="reg-step-4" class="tab-content hidden">
                 <h3 style="margin-bottom: 1rem;">👁 Face Enrollment</h3>
                 <div class="biometric-viewport" style="margin: 0 auto 1rem;">
                     <video id="face-enroll-video" autoplay playsinline muted></video>
@@ -129,8 +90,8 @@
                 </div>
             </div>
 
-            <!-- Step 5: Voice Enrollment -->
-            <div id="reg-step-5" class="tab-content hidden">
+            <!-- Step 4: Voice Enrollment -->
+            <div id="reg-step-4" class="tab-content hidden">
                 <h3 style="margin-bottom: 1rem;">🎤 Voice Enrollment</h3>
                 <div class="glass-card" style="text-align: center; margin-bottom: 1rem;">
                     <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Speak this PIN aloud:</p>
@@ -150,19 +111,19 @@
                     <button class="btn btn-purple flex-1 ripple" id="voice-record-btn"
                         onclick="VoiceEnroll.recordSample()">🎤 Record Sample</button>
                     <button class="btn btn-primary flex-1 ripple" id="voice-complete-btn" disabled
-                        onclick="VoiceEnroll.complete().then(ok => { if(ok) RegistrationWizard.showStep(6); })">Complete
+                        onclick="VoiceEnroll.complete().then(ok => { if(ok) RegistrationWizard.showStep(5); })">Complete
                         ✓</button>
                 </div>
             </div>
 
-            <!-- Step 6: 2FA Setup -->
-            <div id="reg-step-6" class="tab-content hidden">
+            <!-- Step 5: 2FA Setup -->
+            <div id="reg-step-5" class="tab-content hidden">
                 <h3 style="margin-bottom: 1rem;">🔐 Two-Factor Authentication</h3>
                 <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Add an extra layer of
                     security with a TOTP authenticator app.</p>
                 <div id="totp-setup-area" style="text-align: center;">
                     <button class="btn btn-primary ripple" onclick="setup2FA()">Setup 2FA</button>
-                    <button class="btn btn-ghost" onclick="RegistrationWizard.showStep(7)"
+                    <button class="btn btn-ghost" onclick="RegistrationWizard.showStep(6)"
                         style="margin-top: 0.75rem; display: block; width: 100%;">Skip for now</button>
                 </div>
                 <div id="totp-qr-area" class="hidden" style="text-align: center;">
@@ -178,8 +139,8 @@
                 </div>
             </div>
 
-            <!-- Step 7: Complete -->
-            <div id="reg-step-7" class="tab-content hidden" style="text-align: center;">
+            <!-- Step 6: Complete -->
+            <div id="reg-step-6" class="tab-content hidden" style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
                 <h2>All Set!</h2>
                 <p style="margin: 1rem 0 2rem;">Your account is ready. You can now sign in using your chosen
@@ -201,19 +162,8 @@
     <script src="js/face_enroll.js"></script>
     <script src="js/voice_enroll.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            RegistrationWizard.init();
-
-            document.querySelectorAll('input[name="auth-mode"]').forEach(radio => {
-                radio.addEventListener('change', () => {
-                    if (radio.value === 'face' || radio.value === 'face_voice') {
-                        setTimeout(() => FaceEnroll.init(), 300);
-                    }
-                    if (radio.value === 'voice' || radio.value === 'face_voice') {
-                        setTimeout(() => VoiceEnroll.start(), 300);
-                    }
-                });
-            });
+        document.addEventListener('DOMContentLoaded', async () => {
+            await RegistrationWizard.init();
         });
 
         async function setup2FA() {

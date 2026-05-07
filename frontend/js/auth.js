@@ -49,10 +49,38 @@ async function handlePasswordLogin(event) {
 /* ── Registration Handler ── */
 const RegistrationWizard = {
     currentStep: 1,
-    totalSteps: 7,
-    userData: {},
+    totalSteps: 6,
+    userData: {
+        auth_mode: 'face_voice'
+    },
 
-    init() {
+    async init() {
+        if (TokenStore.get()) {
+            try {
+                const user = await apiRequest('/api/auth/me');
+                this.userData = {
+                    ...this.userData,
+                    email: user.email,
+                    username: user.username,
+                    full_name: user.full_name,
+                };
+                if (!user.face_enrolled) {
+                    this.showStep(3);
+                    setTimeout(() => FaceEnroll.init(), 300);
+                } else if (!user.voice_enrolled) {
+                    this.showStep(4);
+                    setTimeout(() => VoiceEnroll.start(), 300);
+                } else if (!user.totp_enabled) {
+                    this.showStep(5);
+                } else {
+                    this.showStep(6);
+                }
+                this.bindNavigation();
+                return;
+            } catch (e) {
+                console.error("Failed to fetch user in Wizard", e);
+            }
+        }
         this.showStep(1);
         this.bindNavigation();
     },
@@ -78,7 +106,7 @@ const RegistrationWizard = {
         const label = $('#reg-step-label');
         if (label) {
             const labels = [
-                '', 'Account Info', 'Password', 'Auth Modes',
+                '', 'Account Info', 'Password',
                 'Face Enrollment', 'Voice Enrollment', '2FA Setup', 'Complete'
             ];
             label.textContent = `Step ${this.currentStep}: ${labels[this.currentStep]}`;
@@ -103,9 +131,6 @@ const RegistrationWizard = {
             this.userData.full_name = $('#reg-fullname')?.value.trim();
         } else if (this.currentStep === 2) {
             this.userData.password = $('#reg-password')?.value;
-        } else if (this.currentStep === 3) {
-            const radios = $$('input[name="auth-mode"]');
-            radios.forEach(r => { if (r.checked) this.userData.auth_mode = r.value; });
         }
 
         if (this.currentStep === 2) {
@@ -117,22 +142,16 @@ const RegistrationWizard = {
             }
         }
 
-        if (this.currentStep === 3) {
-            const mode = this.userData.auth_mode || 'password';
-            if (mode === 'password') {
-                this.showStep(6);
-                return;
-            } else if (mode === 'face') {
-                this.showStep(4);
-                return;
-            } else if (mode === 'voice') {
-                this.showStep(5);
-                return;
-            }
-        }
-
         if (this.currentStep < this.totalSteps) {
-            this.showStep(this.currentStep + 1);
+            const next = this.currentStep + 1;
+            this.showStep(next);
+
+            // Initialize biometrics if entering those steps
+            if (next === 3) {
+                setTimeout(() => FaceEnroll.init(), 300);
+            } else if (next === 4) {
+                setTimeout(() => VoiceEnroll.start(), 300);
+            }
         }
     },
 

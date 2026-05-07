@@ -326,6 +326,13 @@
                 const user = await apiRequest('/api/auth/me');
                 TokenStore.setUserData(user);
 
+                // Force enrollment if required but missing
+                if (user.auth_mode === 'face_voice' && (!user.face_enrolled || !user.voice_enrolled)) {
+                    showToast('Biometric enrollment required. Redirecting...', 'warning');
+                    setTimeout(() => { window.location.href = '/register.html'; }, 2000);
+                    return;
+                }
+
                 document.getElementById('dashboard-greeting').textContent = `Welcome, ${user.full_name}`;
                 document.getElementById('dash-auth-mode').textContent = user.auth_mode.replace('_', ' + ').toUpperCase();
                 document.getElementById('dash-last-login').textContent = formatTimeAgo(user.last_login_at);

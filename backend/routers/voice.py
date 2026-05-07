@@ -6,7 +6,7 @@ import secrets
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, BackgroundTasks
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
@@ -254,7 +254,7 @@ async def verify_voice(
 
     user_result = await db.execute(
         select(UserModel).where(
-            and_(UserModel.email == data.email, UserModel.deleted_at.is_(None))
+            and_(func.lower(UserModel.email) == data.email.strip().lower(), UserModel.deleted_at.is_(None))
         )
     )
     user = user_result.scalar_one_or_none()

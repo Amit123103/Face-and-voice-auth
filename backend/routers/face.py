@@ -5,7 +5,7 @@ Face Router — face enrollment and face-based authentication endpoints.
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
@@ -118,11 +118,12 @@ async def verify_face(
     if not email:
         raise HTTPException(status_code=400, detail="Email query parameter required")
 
+    email = email.strip().lower()
     from backend.models.user import User as UserModel
 
     user_result = await db.execute(
         select(UserModel).where(
-            and_(UserModel.email == email, UserModel.deleted_at.is_(None))
+            and_(func.lower(UserModel.email) == email, UserModel.deleted_at.is_(None))
         )
     )
     user = user_result.scalar_one_or_none()

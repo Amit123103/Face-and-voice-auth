@@ -114,9 +114,10 @@ class AuthService:
         """Register a new user."""
         from backend.services.encryption_service import encryption_service
 
+        email = email.strip().lower()
         existing = await db.execute(
             select(User).where(
-                (User.email == email) | (User.username == username)
+                (func.lower(User.email) == email) | (User.username == username)
             )
         )
         if existing.scalar_one_or_none():
@@ -143,9 +144,10 @@ class AuthService:
         self, db: AsyncSession, email: str, password: str
     ) -> Optional[User]:
         """Authenticate a user by email and password."""
+        email = email.strip().lower()
         result = await db.execute(
             select(User).where(
-                and_(User.email == email, User.deleted_at.is_(None))
+                and_(func.lower(User.email) == email, User.deleted_at.is_(None))
             )
         )
         user = result.scalar_one_or_none()
