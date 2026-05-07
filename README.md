@@ -358,7 +358,9 @@ Workflows are in `.github/workflows/`:
 
 Required secrets:
 - `GITHUB_TOKEN` (automatic)
-- Staging/production deployment SSH keys (in environment settings)
+- `RENDER_DEPLOY_HOOK_BACKEND` (Render > Service > Settings > Deploy Hook)
+- `RENDER_DEPLOY_HOOK_FRONTEND` (Render > Service > Settings > Deploy Hook)
+- Staging/production deployment SSH keys (optional for SSH-based deploys)
 
 ---
 
