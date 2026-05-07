@@ -124,7 +124,7 @@ class VoiceService:
         energies = []
 
         for i in range(0, len(samples) - frame_size, hop_size):
-            frame = samples[i:i + frame_size]
+            frame = samples[i : i + frame_size]
             energy = np.sum(frame**2) / frame_size
             energies.append(energy)
 
@@ -134,7 +134,7 @@ class VoiceService:
         energies = np.array(energies)
         sorted_e = np.sort(energies)
         noise_floor = np.mean(sorted_e[: max(1, len(sorted_e) // 5)])
-        signal_level = np.mean(sorted_e[len(sorted_e) // 2:])
+        signal_level = np.mean(sorted_e[len(sorted_e) // 2 :])
 
         if noise_floor <= 0:
             return 40.0
@@ -151,7 +151,7 @@ class VoiceService:
 
         silent_frames = 0
         for i in range(total_frames):
-            frame = samples[i * frame_size:(i + 1) * frame_size]
+            frame = samples[i * frame_size : (i + 1) * frame_size]
             if np.max(np.abs(frame)) < threshold:
                 silent_frames += 1
 
