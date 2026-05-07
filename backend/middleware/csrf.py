@@ -13,9 +13,9 @@ from backend.config import get_settings
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "x-csrf-token"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
-EXEMPT_PATHS = frozenset({
-    "/api/auth/login", "/api/auth/register", "/health", "/metrics", "/docs", "/openapi.json", "/redoc"
-})
+EXEMPT_PATHS = frozenset(
+    {"/api/auth/login", "/api/auth/register", "/health", "/metrics", "/docs", "/openapi.json", "/redoc"}
+)
 STATIC_PREFIXES = ("/css/", "/js/", "/static/")
 
 settings = get_settings()
@@ -24,9 +24,7 @@ settings = get_settings()
 class CSRFMiddleware(BaseHTTPMiddleware):
     """Implements double-submit cookie CSRF protection."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path
 
         # Skip CSRF entirely for static assets — pure speed

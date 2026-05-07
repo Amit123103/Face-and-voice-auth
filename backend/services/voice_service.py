@@ -66,6 +66,7 @@ class VoiceService:
             return self._whisper_model
         try:
             import whisper
+
             self._whisper_model = whisper.load_model("tiny")
             return self._whisper_model
         except Exception as e:
@@ -123,8 +124,8 @@ class VoiceService:
         energies = []
 
         for i in range(0, len(samples) - frame_size, hop_size):
-            frame = samples[i: i + frame_size]
-            energy = np.sum(frame ** 2) / frame_size
+            frame = samples[i : i + frame_size]
+            energy = np.sum(frame**2) / frame_size
             energies.append(energy)
 
         if not energies:
@@ -133,7 +134,7 @@ class VoiceService:
         energies = np.array(energies)
         sorted_e = np.sort(energies)
         noise_floor = np.mean(sorted_e[: max(1, len(sorted_e) // 5)])
-        signal_level = np.mean(sorted_e[len(sorted_e) // 2:])
+        signal_level = np.mean(sorted_e[len(sorted_e) // 2 :])
 
         if noise_floor <= 0:
             return 40.0
@@ -150,15 +151,13 @@ class VoiceService:
 
         silent_frames = 0
         for i in range(total_frames):
-            frame = samples[i * frame_size: (i + 1) * frame_size]
+            frame = samples[i * frame_size : (i + 1) * frame_size]
             if np.max(np.abs(frame)) < threshold:
                 silent_frames += 1
 
         return silent_frames / total_frames
 
-    def assess_sample_quality(
-        self, audio_b64: str
-    ) -> Tuple[bool, float, float, float, List[str]]:
+    def assess_sample_quality(self, audio_b64: str) -> Tuple[bool, float, float, float, List[str]]:
         """
         Assess the quality of a voice sample for enrollment.
 
@@ -173,21 +172,15 @@ class VoiceService:
             feedback.append(f"Sample rate {sample_rate}Hz is below minimum 16000Hz")
 
         if duration < settings.VOICE_MIN_DURATION:
-            feedback.append(
-                f"Audio too short ({duration:.1f}s). Minimum {settings.VOICE_MIN_DURATION}s required."
-            )
+            feedback.append(f"Audio too short ({duration:.1f}s). Minimum {settings.VOICE_MIN_DURATION}s required.")
         elif duration > settings.VOICE_MAX_DURATION:
-            feedback.append(
-                f"Audio too long ({duration:.1f}s). Maximum {settings.VOICE_MAX_DURATION}s."
-            )
+            feedback.append(f"Audio too long ({duration:.1f}s). Maximum {settings.VOICE_MAX_DURATION}s.")
 
         snr = self._compute_snr(samples, sample_rate)
         if snr < settings.VOICE_MIN_SNR:
-            feedback.append(
-                f"Audio too noisy (SNR: {snr:.1f}dB). Minimum {settings.VOICE_MIN_SNR}dB required."
-            )
+            feedback.append(f"Audio too noisy (SNR: {snr:.1f}dB). Minimum {settings.VOICE_MIN_SNR}dB required.")
 
-        rms = np.sqrt(np.mean(samples ** 2))
+        rms = np.sqrt(np.mean(samples**2))
         if rms < 0.005:
             feedback.append("Audio is too quiet. Please speak louder.")
 
@@ -222,15 +215,11 @@ class VoiceService:
             if sample_rate != 16000:
                 import torchaudio
 
-                waveform = torchaudio.functional.resample(
-                    waveform, sample_rate, 16000
-                )
+                waveform = torchaudio.functional.resample(waveform, sample_rate, 16000)
             embedding = _voice_model.encode_batch(waveform)
             return embedding.squeeze().cpu().numpy()
         else:
-            rng = np.random.RandomState(
-                int(np.sum(np.abs(samples[:1000])) * 10000) % (2 ** 31)
-            )
+            rng = np.random.RandomState(int(np.sum(np.abs(samples[:1000])) * 10000) % (2**31))
             emb = rng.randn(EMBEDDING_DIM).astype(np.float64)
             emb /= np.linalg.norm(emb)
             return emb
@@ -239,23 +228,17 @@ class VoiceService:
         """Synchronous enrollment (runs in thread pool)."""
         is_ok, quality, snr, duration, feedback = self.assess_sample_quality(audio_b64)
         if not is_ok:
-            raise ValueError(
-                f"Voice sample quality insufficient: {'; '.join(feedback)}"
-            )
+            raise ValueError(f"Voice sample quality insufficient: {'; '.join(feedback)}")
 
         samples, sample_rate = self._decode_wav(audio_b64)
         embedding = self._extract_embedding(samples, sample_rate)
         embedding_bytes = embedding.tobytes()
 
-        encrypted_b64, nonce_b64 = encryption_service.encrypt(
-            embedding_bytes, user_id, salt_b64
-        )
+        encrypted_b64, nonce_b64 = encryption_service.encrypt(embedding_bytes, user_id, salt_b64)
 
         return encrypted_b64, nonce_b64, quality, snr, duration
 
-    async def enroll_sample(
-        self, audio_b64: str, user_id: str, salt_b64: str
-    ) -> Tuple[str, str, float, float, float]:
+    async def enroll_sample(self, audio_b64: str, user_id: str, salt_b64: str) -> Tuple[str, str, float, float, float]:
         """
         Process a single voice sample for enrollment.
         Runs CPU-bound work in thread pool.
@@ -264,9 +247,7 @@ class VoiceService:
             Tuple of (encrypted_embedding_b64, nonce_b64, quality, snr, duration)
         """
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            _voice_executor, self._sync_enroll_sample, audio_b64, user_id, salt_b64
-        )
+        return await loop.run_in_executor(_voice_executor, self._sync_enroll_sample, audio_b64, user_id, salt_b64)
 
     async def compute_averaged_voiceprint(
         self,
@@ -282,18 +263,14 @@ class VoiceService:
         """
         vectors = []
         for emb in encrypted_embeddings:
-            decrypted = encryption_service.decrypt(
-                emb["ciphertext_b64"], emb["nonce_b64"], user_id, salt_b64
-            )
+            decrypted = encryption_service.decrypt(emb["ciphertext_b64"], emb["nonce_b64"], user_id, salt_b64)
             vec = np.frombuffer(decrypted, dtype=np.float64)
             vectors.append(vec)
 
         avg_vector = np.mean(vectors, axis=0)
         avg_vector /= np.linalg.norm(avg_vector)
 
-        encrypted_b64, nonce_b64 = encryption_service.encrypt(
-            avg_vector.tobytes(), user_id, salt_b64
-        )
+        encrypted_b64, nonce_b64 = encryption_service.encrypt(avg_vector.tobytes(), user_id, salt_b64)
         return encrypted_b64, nonce_b64
 
     def _sync_verify_voice(
@@ -347,7 +324,11 @@ class VoiceService:
         return await loop.run_in_executor(
             _voice_executor,
             self._sync_verify_voice,
-            audio_b64, stored_voiceprint, user_id, salt_b64, threshold,
+            audio_b64,
+            stored_voiceprint,
+            user_id,
+            salt_b64,
+            threshold,
         )
 
     async def transcribe_audio(self, audio_b64: str) -> str:
@@ -362,12 +343,12 @@ class VoiceService:
             # Whisper requires 16kHz
             if sample_rate != 16000:
                 from scipy import signal as scipy_signal
+
                 num_samples = int(len(samples) * 16000 / sample_rate)
                 samples = scipy_signal.resample(samples, num_samples)
 
             result = await asyncio.get_running_loop().run_in_executor(
-                _voice_executor,
-                lambda: model.transcribe(samples, language="en")
+                _voice_executor, lambda: model.transcribe(samples, language="en")
             )
             return result.get("text", "").strip()
         except Exception as e:
@@ -396,7 +377,9 @@ class VoiceService:
 
         # Clean strings: remove punctuation and extra whitespace
         import re
-        def clean(s): return re.sub(r'[^\w\s]', '', s.lower()).strip()
+
+        def clean(s):
+            return re.sub(r"[^\w\s]", "", s.lower()).strip()
 
         c1, c2 = clean(transcribed), clean(expected_text)
         dist = self._edit_distance(c1, c2)

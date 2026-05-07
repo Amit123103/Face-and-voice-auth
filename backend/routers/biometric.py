@@ -81,14 +81,9 @@ async def biometric_login(
         if not encodings:
             return
 
-        stored = [
-            {"encoding_blob": e.encoding_blob, "encoding_nonce": e.encoding_nonce}
-            for e in encodings
-        ]
+        stored = [{"encoding_blob": e.encoding_blob, "encoding_nonce": e.encoding_nonce} for e in encodings]
 
-        is_match, conf, frames = await face_service.verify_face(
-            data.face_frames, stored, user.id, user.encryption_salt
-        )
+        is_match, conf, frames = await face_service.verify_face(data.face_frames, stored, user.id, user.encryption_salt)
         face_confidence = conf
         face_passed = is_match
 
@@ -115,9 +110,7 @@ async def biometric_login(
             "embedding_nonce": vp.embedding_nonce,
         }
 
-        is_match, sim = await voice_service.verify_voice(
-            data.voice_audio_base64, stored, user.id, user.encryption_salt
-        )
+        is_match, sim = await voice_service.verify_voice(data.voice_audio_base64, stored, user.id, user.encryption_salt)
         voice_confidence = sim
         voice_passed = is_match
 
@@ -164,17 +157,13 @@ async def biometric_login(
     expires_in = None
 
     if authenticated:
-        access_token, expires_in = auth_service.create_access_token(
-            user.id, user.role.value, auth_method
-        )
+        access_token, expires_in = auth_service.create_access_token(user.id, user.role.value, auth_method)
         refresh_token, _ = auth_service.create_refresh_token()
 
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
 
-        await auth_service.create_session(
-            db, user, refresh_token, client_ip, user_agent, auth_method
-        )
+        await auth_service.create_session(db, user, refresh_token, client_ip, user_agent, auth_method)
 
         background_tasks.add_task(email_service.send_login_alert, user.email, client_ip, auth_method)
 

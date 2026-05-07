@@ -87,7 +87,7 @@ async def enroll_face(
             email_service.send_security_alert,
             current_user.email,
             "Face Enrollment Updated",
-            "A new face profile has been enrolled. Face-based authentication is now active."
+            "A new face profile has been enrolled. Face-based authentication is now active.",
         )
 
     await db.flush()
@@ -118,9 +118,7 @@ async def verify_face(
     from backend.models.user import User as UserModel
 
     user_result = await db.execute(
-        select(UserModel).where(
-            and_(func.lower(UserModel.email) == email, UserModel.deleted_at.is_(None))
-        )
+        select(UserModel).where(and_(func.lower(UserModel.email) == email, UserModel.deleted_at.is_(None)))
     )
     user = user_result.scalar_one_or_none()
     if not user:
@@ -140,10 +138,7 @@ async def verify_face(
     )
     encodings = enc_result.scalars().all()
 
-    stored = [
-        {"encoding_blob": e.encoding_blob, "encoding_nonce": e.encoding_nonce}
-        for e in encodings
-    ]
+    stored = [{"encoding_blob": e.encoding_blob, "encoding_nonce": e.encoding_nonce} for e in encodings]
 
     threshold = user.face_threshold_override or None
     is_match, confidence, frames_matched = await face_service.verify_face(
@@ -193,11 +188,10 @@ async def face_status(
     )
     encodings = result.scalars().all()
     angles = [e.angle_label for e in encodings]
-    last_matched = max(
-        (e.last_matched_at for e in encodings if e.last_matched_at), default=None
-    )
+    last_matched = max((e.last_matched_at for e in encodings if e.last_matched_at), default=None)
 
     from backend.config import get_settings
+
     settings = get_settings()
 
     return FaceStatusResponse(
@@ -239,7 +233,7 @@ async def delete_face_enrollment(
         email_service.send_security_alert,
         current_user.email,
         "Face Enrollment Deleted",
-        "Your face biometric data has been removed from the system. Your security score has been updated."
+        "Your face biometric data has been removed from the system. Your security score has been updated.",
     )
 
     return {"message": f"Deleted {len(encodings)} face enrollments"}

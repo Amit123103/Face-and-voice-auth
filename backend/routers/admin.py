@@ -62,9 +62,7 @@ async def list_users(
         next_cursor = users[limit - 1].id
         users = users[:limit]
 
-    count_result = await db.execute(
-        select(func.count(User.id)).where(User.deleted_at.is_(None))
-    )
+    count_result = await db.execute(select(func.count(User.id)).where(User.deleted_at.is_(None)))
     total = count_result.scalar()
 
     return UserListResponse(
@@ -83,10 +81,7 @@ async def get_user_audit_log(
 ):
     """View full audit log for a specific user."""
     result = await db.execute(
-        select(AuditLog)
-        .where(AuditLog.user_id == user_id)
-        .order_by(desc(AuditLog.created_at))
-        .limit(limit)
+        select(AuditLog).where(AuditLog.user_id == user_id).order_by(desc(AuditLog.created_at)).limit(limit)
     )
     logs = result.scalars().all()
     return {
@@ -177,9 +172,7 @@ async def system_health(
             and_(SessionRecord.is_active.is_(True), SessionRecord.revoked_at.is_(None))
         )
     )
-    total_users = await db.execute(
-        select(func.count(User.id)).where(User.deleted_at.is_(None))
-    )
+    total_users = await db.execute(select(func.count(User.id)).where(User.deleted_at.is_(None)))
 
     failed_logins = await db.execute(
         select(func.count(AuditLog.id)).where(
@@ -192,6 +185,7 @@ async def system_health(
 
     try:
         import psutil
+
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         memory_percent = memory.percent
@@ -233,16 +227,12 @@ async def user_biometric_stats(
         raise HTTPException(status_code=404, detail="User not found")
 
     face_result = await db.execute(
-        select(FaceEncoding).where(
-            and_(FaceEncoding.user_id == user_id, FaceEncoding.is_active.is_(True))
-        )
+        select(FaceEncoding).where(and_(FaceEncoding.user_id == user_id, FaceEncoding.is_active.is_(True)))
     )
     face_encodings = face_result.scalars().all()
 
     voice_result = await db.execute(
-        select(VoicePrint).where(
-            and_(VoicePrint.user_id == user_id, VoicePrint.is_active.is_(True))
-        )
+        select(VoicePrint).where(and_(VoicePrint.user_id == user_id, VoicePrint.is_active.is_(True)))
     )
     voice_prints = voice_result.scalars().all()
 
@@ -273,9 +263,7 @@ async def force_voice_reenroll(
 ):
     """Force a user to re-enroll their voice print."""
     result = await db.execute(
-        select(VoicePrint).where(
-            and_(VoicePrint.user_id == user_id, VoicePrint.is_active.is_(True))
-        )
+        select(VoicePrint).where(and_(VoicePrint.user_id == user_id, VoicePrint.is_active.is_(True)))
     )
     prints = result.scalars().all()
     for vp in prints:
@@ -302,6 +290,7 @@ async def admin_list_transactions(
     txns = result.scalars().all()
 
     from backend.routers.transaction import get_transaction_response
+
     # Convert list using the helper function sequentially
     responses = []
     for t in txns:
@@ -347,4 +336,5 @@ async def admin_approve_transaction(
     await db.commit()
 
     from backend.routers.transaction import get_transaction_response
+
     return await get_transaction_response(db, txn)

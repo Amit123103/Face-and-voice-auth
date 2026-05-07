@@ -30,14 +30,11 @@ from sqlalchemy.ext.asyncio import (  # noqa: E402
 from backend.database import Base, get_db  # noqa: E402
 from backend.main import app  # noqa: E402
 
-
 test_engine = create_async_engine(
     "sqlite+aiosqlite:///./test_facevoiceauth.db",
     connect_args={"check_same_thread": False},
 )
-TestSessionLocal = async_sessionmaker(
-    test_engine, class_=AsyncSession, expire_on_commit=False
-)
+TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -99,6 +96,7 @@ def fake_face_image_b64() -> str:
     img = np.zeros((480, 640, 3), dtype=np.uint8)
     img[100:380, 200:440] = [200, 180, 160]
     import cv2
+
     _, buffer = cv2.imencode(".jpg", img)
     return base64.b64encode(buffer).decode("utf-8")
 

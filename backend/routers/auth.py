@@ -25,9 +25,7 @@ settings = get_settings()
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 
-async def get_current_user(
-    request: Request, db: AsyncSession = Depends(get_db)
-) -> User:
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     """Dependency to extract and validate the current authenticated user."""
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
@@ -56,8 +54,12 @@ async def register(
     """Register a new user account."""
     try:
         user = await auth_service.register_user(
-            db, data.email, data.username, data.full_name,
-            data.password, data.auth_mode,
+            db,
+            data.email,
+            data.username,
+            data.full_name,
+            data.password,
+            data.auth_mode,
         )
         background_tasks.add_task(email_service.send_welcome_email, user.email, user.full_name)
         return UserResponse.model_validate(user)
@@ -91,17 +93,13 @@ async def login(
         if not auth_service.verify_totp(user.totp_secret, data.totp_code):
             raise HTTPException(status_code=403, detail="Invalid 2FA code")
 
-    access_token, expires_in = auth_service.create_access_token(
-        user.id, user.role.value, "password"
-    )
+    access_token, expires_in = auth_service.create_access_token(user.id, user.role.value, "password")
     refresh_token, _ = auth_service.create_refresh_token()
 
     client_ip = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
 
-    await auth_service.create_session(
-        db, user, refresh_token, client_ip, user_agent, "password"
-    )
+    await auth_service.create_session(db, user, refresh_token, client_ip, user_agent, "password")
 
     background_tasks.add_task(email_service.send_login_alert, user.email, client_ip, "Password")
 
@@ -223,7 +221,7 @@ async def verify_totp(
         email_service.send_security_alert,
         current_user.email,
         "2FA Enabled",
-        "TOTP-based two-factor authentication has been successfully enabled on your account."
+        "TOTP-based two-factor authentication has been successfully enabled on your account.",
     )
 
     return {"message": "2FA enabled successfully"}

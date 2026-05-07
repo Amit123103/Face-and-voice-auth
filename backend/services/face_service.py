@@ -44,9 +44,7 @@ def _load_models() -> bool:
         predictor_path = f"{settings.FACE_MODEL_DIR}/shape_predictor_68_face_landmarks.dat"
         _shape_predictor = dlib.shape_predictor(predictor_path)
 
-        recognizer_path = (
-            f"{settings.FACE_MODEL_DIR}/dlib_face_recognition_resnet_model_v1.dat"
-        )
+        recognizer_path = f"{settings.FACE_MODEL_DIR}/dlib_face_recognition_resnet_model_v1.dat"
         _face_recognizer = dlib.face_recognition_model_v1(recognizer_path)
 
         _models_loaded = True
@@ -87,6 +85,7 @@ class FaceService:
 
             class _SimRect:
                 """Simulated dlib rectangle when dlib is not installed."""
+
                 def __init__(self, left_val, t, r, b):
                     self._left, self._top, self._right, self._bottom = left_val, t, r, b
 
@@ -160,23 +159,16 @@ class FaceService:
         quality = self._assess_quality(image, face_rect)
 
         if quality < 0.3:
-            raise ValueError(
-                f"Image quality too low ({quality:.2f}). "
-                "Ensure good lighting and face centering."
-            )
+            raise ValueError(f"Image quality too low ({quality:.2f}). " "Ensure good lighting and face centering.")
 
         encoding = self._get_encoding(image, face_rect)
         encoding_bytes = encoding.tobytes()
 
-        encrypted_b64, nonce_b64 = encryption_service.encrypt(
-            encoding_bytes, user_id, salt_b64
-        )
+        encrypted_b64, nonce_b64 = encryption_service.encrypt(encoding_bytes, user_id, salt_b64)
 
         return encrypted_b64, nonce_b64, quality
 
-    async def enroll_face(
-        self, image_b64: str, angle: str, user_id: str, salt_b64: str
-    ) -> Tuple[str, str, float]:
+    async def enroll_face(self, image_b64: str, angle: str, user_id: str, salt_b64: str) -> Tuple[str, str, float]:
         """
         Process a face image for enrollment.
         Runs CPU-bound work in thread pool to avoid blocking the event loop.
@@ -185,9 +177,7 @@ class FaceService:
             Tuple of (encrypted_encoding_b64, nonce_b64, quality_score)
         """
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            _face_executor, self._sync_enroll_face, image_b64, angle, user_id, salt_b64
-        )
+        return await loop.run_in_executor(_face_executor, self._sync_enroll_face, image_b64, angle, user_id, salt_b64)
 
     def _sync_verify_face(
         self,
@@ -275,7 +265,11 @@ class FaceService:
         return await loop.run_in_executor(
             _face_executor,
             self._sync_verify_face,
-            frames_b64, stored_encodings, user_id, salt_b64, threshold,
+            frames_b64,
+            stored_encodings,
+            user_id,
+            salt_b64,
+            threshold,
         )
 
 

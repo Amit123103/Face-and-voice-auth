@@ -73,25 +73,15 @@ class User(Base):
     last_login_method = Column(String(20), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
 
     encryption_salt = Column(String(44), nullable=True)
 
-    face_encodings = relationship(
-        "FaceEncoding", back_populates="user", cascade="all, delete-orphan"
-    )
-    voice_prints = relationship(
-        "VoicePrint", back_populates="user", cascade="all, delete-orphan"
-    )
-    sessions = relationship(
-        "SessionRecord", back_populates="user", cascade="all, delete-orphan"
-    )
-    audit_logs = relationship(
-        "AuditLog", back_populates="user", cascade="all, delete-orphan"
-    )
+    face_encodings = relationship("FaceEncoding", back_populates="user", cascade="all, delete-orphan")
+    voice_prints = relationship("VoicePrint", back_populates="user", cascade="all, delete-orphan")
+    sessions = relationship("SessionRecord", back_populates="user", cascade="all, delete-orphan")
+    audit_logs = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def is_soft_deleted(self) -> bool:

@@ -19,6 +19,7 @@ def _get_storage_uri() -> str:
     if "redis" in settings.REDIS_URL:
         try:
             import socket
+
             # Quick connectivity check — don't hang on unreachable Redis
             parts = settings.REDIS_URL.replace("redis://", "").split(":")
             host = parts[0] if parts[0] else "localhost"
@@ -42,9 +43,7 @@ limiter = Limiter(
 )
 
 
-async def rate_limit_exceeded_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """Custom handler for rate limit exceeded errors in RFC 7807 format."""
     return JSONResponse(
         status_code=429,

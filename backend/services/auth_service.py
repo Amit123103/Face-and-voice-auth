@@ -35,13 +35,9 @@ class AuthService:
 
     def verify_password(self, password: str, hashed: str) -> bool:
         """Check a password against its bcrypt hash."""
-        return bcrypt.checkpw(
-            password.encode("utf-8"), hashed.encode("utf-8")
-        )
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
-    def create_access_token(
-        self, user_id: str, role: str, auth_method: str
-    ) -> Tuple[str, int]:
+    def create_access_token(self, user_id: str, role: str, auth_method: str) -> Tuple[str, int]:
         """Create a JWT access token with claims."""
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         expire = datetime.utcnow() + expires_delta
@@ -70,9 +66,7 @@ class AuthService:
     def decode_access_token(self, token: str) -> Optional[dict]:
         """Decode and validate a JWT access token."""
         try:
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-            )
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             if payload.get("type") != "access":
                 return None
             return payload
@@ -108,18 +102,13 @@ class AuthService:
         return [secrets.token_hex(4).upper() for _ in range(count)]
 
     async def register_user(
-        self, db: AsyncSession, email: str, username: str, full_name: str,
-        password: str, auth_mode: str = "password"
+        self, db: AsyncSession, email: str, username: str, full_name: str, password: str, auth_mode: str = "password"
     ) -> User:
         """Register a new user."""
         from backend.services.encryption_service import encryption_service
 
         email = email.strip().lower()
-        existing = await db.execute(
-            select(User).where(
-                (func.lower(User.email) == email) | (User.username == username)
-            )
-        )
+        existing = await db.execute(select(User).where((func.lower(User.email) == email) | (User.username == username)))
         if existing.scalar_one_or_none():
             raise ValueError("User with this email or username already exists")
 
@@ -140,16 +129,10 @@ class AuthService:
         await db.flush()
         return user
 
-    async def authenticate_password(
-        self, db: AsyncSession, email: str, password: str
-    ) -> Optional[User]:
+    async def authenticate_password(self, db: AsyncSession, email: str, password: str) -> Optional[User]:
         """Authenticate a user by email and password."""
         email = email.strip().lower()
-        result = await db.execute(
-            select(User).where(
-                and_(func.lower(User.email) == email, User.deleted_at.is_(None))
-            )
-        )
+        result = await db.execute(select(User).where(and_(func.lower(User.email) == email, User.deleted_at.is_(None))))
         user = result.scalar_one_or_none()
         if not user:
             return None
@@ -192,8 +175,7 @@ class AuthService:
         await db.flush()
 
     async def create_session(
-        self, db: AsyncSession, user: User, refresh_token: str,
-        ip: str, user_agent: str, auth_method: str
+        self, db: AsyncSession, user: User, refresh_token: str, ip: str, user_agent: str, auth_method: str
     ) -> SessionRecord:
         """Create a new authenticated session."""
         _, expires = self.create_refresh_token()
@@ -213,26 +195,24 @@ class AuthService:
         await db.flush()
         return session
 
-    async def get_user_sessions(
-        self, db: AsyncSession, user_id: str
-    ) -> List[SessionRecord]:
+    async def get_user_sessions(self, db: AsyncSession, user_id: str) -> List[SessionRecord]:
         """Get all active sessions for a user."""
         result = await db.execute(
-            select(SessionRecord).where(
+            select(SessionRecord)
+            .where(
                 and_(
                     SessionRecord.user_id == user_id,
                     SessionRecord.is_active.is_(True),
                     SessionRecord.revoked_at.is_(None),
                 )
-            ).order_by(SessionRecord.created_at.desc())
+            )
+            .order_by(SessionRecord.created_at.desc())
         )
         return list(result.scalars().all())
 
     async def revoke_session(self, db: AsyncSession, session_id: str) -> bool:
         """Revoke a specific session."""
-        result = await db.execute(
-            select(SessionRecord).where(SessionRecord.id == session_id)
-        )
+        result = await db.execute(select(SessionRecord).where(SessionRecord.id == session_id))
         session = result.scalar_one_or_none()
         if session:
             session.is_active = False
@@ -241,9 +221,7 @@ class AuthService:
             return True
         return False
 
-    async def revoke_all_sessions(
-        self, db: AsyncSession, user_id: str, except_session_id: Optional[str] = None
-    ) -> int:
+    async def revoke_all_sessions(self, db: AsyncSession, user_id: str, except_session_id: Optional[str] = None) -> int:
         """Revoke all sessions for a user, optionally keeping current session."""
         stmt = (
             update(SessionRecord)
@@ -261,9 +239,7 @@ class AuthService:
         await db.flush()
         return result.rowcount
 
-    async def refresh_access_token(
-        self, db: AsyncSession, refresh_token: str
-    ) -> Optional[Tuple[str, int, str]]:
+    async def refresh_access_token(self, db: AsyncSession, refresh_token: str) -> Optional[Tuple[str, int, str]]:
         """Validate refresh token and issue a new access token."""
         token_hash = self.hash_refresh_token(refresh_token)
         result = await db.execute(
@@ -279,29 +255,19 @@ class AuthService:
         if not session or session.is_expired:
             return None
 
-        user_result = await db.execute(
-            select(User).where(User.id == session.user_id)
-        )
+        user_result = await db.execute(select(User).where(User.id == session.user_id))
         user = user_result.scalar_one_or_none()
         if not user or not user.is_active or user.is_soft_deleted:
             return None
 
         session.last_activity = datetime.utcnow()
-        access_token, expires_in = self.create_access_token(
-            user.id, user.role.value, session.auth_method
-        )
+        access_token, expires_in = self.create_access_token(user.id, user.role.value, session.auth_method)
         await db.flush()
         return access_token, expires_in, user.id
 
-    async def get_user_by_id(
-        self, db: AsyncSession, user_id: str
-    ) -> Optional[User]:
+    async def get_user_by_id(self, db: AsyncSession, user_id: str) -> Optional[User]:
         """Fetch a user by ID, excluding soft-deleted records."""
-        result = await db.execute(
-            select(User).where(
-                and_(User.id == user_id, User.deleted_at.is_(None))
-            )
-        )
+        result = await db.execute(select(User).where(and_(User.id == user_id, User.deleted_at.is_(None))))
         return result.scalar_one_or_none()
 
     def check_password_strength(self, password: str) -> dict:

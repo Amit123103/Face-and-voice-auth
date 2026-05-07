@@ -51,9 +51,7 @@ class VoiceLivenessService:
 
         return samples, sample_rate
 
-    def detect_replay_attack(
-        self, samples: np.ndarray, sample_rate: int
-    ) -> Tuple[bool, float]:
+    def detect_replay_attack(self, samples: np.ndarray, sample_rate: int) -> Tuple[bool, float]:
         """
         Detect replay attacks by analyzing frequency spectrum.
         Loudspeaker replays typically show energy cutoff around 8kHz.
@@ -101,16 +99,14 @@ class VoiceLivenessService:
         silent_frames = 0
 
         for i in range(total_frames):
-            frame = samples[i * frame_size: (i + 1) * frame_size]
+            frame = samples[i * frame_size : (i + 1) * frame_size]
             if np.max(np.abs(frame)) < SILENCE_THRESHOLD:
                 silent_frames += 1
 
         ratio = silent_frames / total_frames
         return ratio <= MAX_SILENCE_RATIO, round(ratio, 3)
 
-    def validate_audio_format(
-        self, audio_b64: str
-    ) -> Tuple[bool, dict]:
+    def validate_audio_format(self, audio_b64: str) -> Tuple[bool, dict]:
         """
         Validate audio format requirements.
 
@@ -141,9 +137,7 @@ class VoiceLivenessService:
         info["issues"] = issues
         return len(issues) == 0, info
 
-    async def verify_challenge_response(
-        self, audio_b64: str, expected_pin: str
-    ) -> Tuple[bool, str]:
+    async def verify_challenge_response(self, audio_b64: str, expected_pin: str) -> Tuple[bool, str]:
         """
         Verify that the user spoke the correct challenge PIN using Whisper STT.
 
@@ -174,9 +168,16 @@ class VoiceLivenessService:
             transcribed = result["text"].strip()
 
             digits_map = {
-                "zero": "0", "one": "1", "two": "2", "three": "3",
-                "four": "4", "five": "5", "six": "6", "seven": "7",
-                "eight": "8", "nine": "9",
+                "zero": "0",
+                "one": "1",
+                "two": "2",
+                "three": "3",
+                "four": "4",
+                "five": "5",
+                "six": "6",
+                "seven": "7",
+                "eight": "8",
+                "nine": "9",
             }
 
             cleaned = transcribed.lower()
@@ -238,9 +239,7 @@ class VoiceLivenessService:
         silence_ok, silence_ratio = self.check_silence_ratio(samples)
 
         if challenge_pin:
-            challenge_ok, transcribed = await self.verify_challenge_response(
-                audio_b64, challenge_pin
-            )
+            challenge_ok, transcribed = await self.verify_challenge_response(audio_b64, challenge_pin)
         else:
             challenge_ok = True
             transcribed = "[no_challenge]"

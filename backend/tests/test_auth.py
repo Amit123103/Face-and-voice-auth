@@ -32,10 +32,13 @@ async def test_register_duplicate_email_fails(client: AsyncClient, sample_user_d
 async def test_login_correct_password(client: AsyncClient, sample_user_data: dict):
     """Login with correct credentials returns access token."""
     await client.post("/api/auth/register", json=sample_user_data)
-    response = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    response = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -48,10 +51,13 @@ async def test_login_correct_password(client: AsyncClient, sample_user_data: dic
 async def test_login_wrong_password_increments_lockout(client: AsyncClient, sample_user_data: dict):
     """Wrong password increments failed login count."""
     await client.post("/api/auth/register", json=sample_user_data)
-    response = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": "WrongPassword123!",
-    })
+    response = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": "WrongPassword123!",
+        },
+    )
     assert response.status_code == 401
 
 
@@ -60,10 +66,13 @@ async def test_account_locks_after_5_failures(client: AsyncClient, sample_user_d
     """Account locks after 5 consecutive failed login attempts."""
     await client.post("/api/auth/register", json=sample_user_data)
     for i in range(6):
-        response = await client.post("/api/auth/login", json={
-            "email": sample_user_data["email"],
-            "password": f"WrongPass{i}!",
-        })
+        response = await client.post(
+            "/api/auth/login",
+            json={
+                "email": sample_user_data["email"],
+                "password": f"WrongPass{i}!",
+            },
+        )
     assert response.status_code == 401
 
 
@@ -71,15 +80,21 @@ async def test_account_locks_after_5_failures(client: AsyncClient, sample_user_d
 async def test_jwt_token_valid(client: AsyncClient, sample_user_data: dict):
     """A valid JWT can be used to access protected endpoints."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
 
-    me_resp = await client.get("/api/auth/me", headers={
-        "Authorization": f"Bearer {token}",
-    })
+    me_resp = await client.get(
+        "/api/auth/me",
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     assert me_resp.status_code == 200
     assert me_resp.json()["email"] == sample_user_data["email"]
 
@@ -87,9 +102,12 @@ async def test_jwt_token_valid(client: AsyncClient, sample_user_data: dict):
 @pytest.mark.asyncio
 async def test_expired_token_rejected(client: AsyncClient):
     """An invalid/expired token is rejected with 401."""
-    response = await client.get("/api/auth/me", headers={
-        "Authorization": "Bearer invalid.token.here",
-    })
+    response = await client.get(
+        "/api/auth/me",
+        headers={
+            "Authorization": "Bearer invalid.token.here",
+        },
+    )
     assert response.status_code == 401
 
 
@@ -97,10 +115,13 @@ async def test_expired_token_rejected(client: AsyncClient):
 async def test_refresh_token_rotation(client: AsyncClient, sample_user_data: dict):
     """Refresh token cookie can be used to get a new access token."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     assert login_resp.status_code == 200
 
     cookies = login_resp.cookies
@@ -117,10 +138,13 @@ async def test_refresh_token_rotation(client: AsyncClient, sample_user_data: dic
 async def test_2fa_totp_valid(client: AsyncClient, sample_user_data: dict):
     """Setting up and verifying TOTP 2FA works correctly."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -132,6 +156,7 @@ async def test_2fa_totp_valid(client: AsyncClient, sample_user_data: dict):
     assert len(data["backup_codes"]) == 8
 
     import pyotp
+
     totp = pyotp.TOTP(data["secret"])
     valid_code = totp.now()
 
@@ -147,10 +172,13 @@ async def test_2fa_totp_valid(client: AsyncClient, sample_user_data: dict):
 async def test_2fa_totp_invalid_rejected(client: AsyncClient, sample_user_data: dict):
     """An invalid TOTP code is rejected."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -167,9 +195,12 @@ async def test_2fa_totp_invalid_rejected(client: AsyncClient, sample_user_data: 
 @pytest.mark.asyncio
 async def test_password_strength_check(client: AsyncClient):
     """Password strength endpoint returns scoring."""
-    response = await client.post("/api/auth/password-strength", json={
-        "password": "weak",
-    })
+    response = await client.post(
+        "/api/auth/password-strength",
+        json={
+            "password": "weak",
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert "score" in data

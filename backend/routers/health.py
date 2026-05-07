@@ -89,9 +89,7 @@ async def prometheus_metrics():
 
     voice_rejection_rate = 0
     if _metrics["voice_verify_total"] > 0:
-        voice_rejection_rate = round(
-            _metrics["voice_liveness_rejection_total"] / _metrics["voice_verify_total"], 4
-        )
+        voice_rejection_rate = round(_metrics["voice_liveness_rejection_total"] / _metrics["voice_verify_total"], 4)
 
     lines = [
         "# HELP facevoiceauth_uptime_seconds Server uptime in seconds",
@@ -121,4 +119,5 @@ async def prometheus_metrics():
     ]
 
     from starlette.responses import PlainTextResponse
+
     return PlainTextResponse("\n".join(lines), media_type="text/plain")

@@ -45,9 +45,7 @@ class BackupService:
                 backup_path.touch()
         else:
             backup_path.touch()
-            logger.info(
-                "PostgreSQL backup would be triggered via pg_dump in production"
-            )
+            logger.info("PostgreSQL backup would be triggered via pg_dump in production")
 
         size = backup_path.stat().st_size if backup_path.exists() else 0
 
@@ -63,12 +61,14 @@ class BackupService:
         """List all existing backups with metadata."""
         backups = []
         for f in sorted(self.backup_dir.glob("facevoiceauth_backup_*.db.gz"), reverse=True):
-            backups.append({
-                "filename": f.name,
-                "path": str(f),
-                "size_bytes": f.stat().st_size,
-                "created_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat(),
-            })
+            backups.append(
+                {
+                    "filename": f.name,
+                    "path": str(f),
+                    "size_bytes": f.stat().st_size,
+                    "created_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat(),
+                }
+            )
         return backups
 
     def cleanup_old_backups(self) -> int:

@@ -16,19 +16,26 @@ from unittest.mock import patch
 async def test_enroll_face_success(client: AsyncClient, sample_user_data: dict, fake_face_image_b64: str):
     """Face enrollment with a valid image succeeds."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     with patch("backend.services.face_service.face_service.enroll_face") as mock_enroll:
         mock_enroll.return_value = ("encrypted_blob_b64", "nonce_b64", 0.85)
-        response = await client.post("/api/face/enroll", json={
-            "angle": "front",
-            "image_base64": fake_face_image_b64,
-        }, headers=headers)
+        response = await client.post(
+            "/api/face/enroll",
+            json={
+                "angle": "front",
+                "image_base64": fake_face_image_b64,
+            },
+            headers=headers,
+        )
 
     assert response.status_code == 200
     data = response.json()
@@ -41,19 +48,26 @@ async def test_enroll_face_success(client: AsyncClient, sample_user_data: dict, 
 async def test_enroll_rejects_no_face(client: AsyncClient, sample_user_data: dict):
     """Enrollment rejects images with no detectable face."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     with patch("backend.services.face_service.face_service.enroll_face") as mock_enroll:
         mock_enroll.side_effect = ValueError("No face detected in the image")
-        response = await client.post("/api/face/enroll", json={
-            "angle": "front",
-            "image_base64": base64.b64encode(b"\x00" * 100).decode(),
-        }, headers=headers)
+        response = await client.post(
+            "/api/face/enroll",
+            json={
+                "angle": "front",
+                "image_base64": base64.b64encode(b"\x00" * 100).decode(),
+            },
+            headers=headers,
+        )
 
     assert response.status_code == 400
     assert "no face" in response.json()["detail"].lower()
@@ -63,19 +77,26 @@ async def test_enroll_rejects_no_face(client: AsyncClient, sample_user_data: dic
 async def test_face_match_known_user(client: AsyncClient, sample_user_data: dict, fake_face_image_b64: str):
     """Face verification matches a known enrolled user."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     with patch("backend.services.face_service.face_service.enroll_face") as mock_enroll:
         mock_enroll.return_value = ("encrypted_blob_b64", "nonce_b64", 0.9)
-        await client.post("/api/face/enroll", json={
-            "angle": "front",
-            "image_base64": fake_face_image_b64,
-        }, headers=headers)
+        await client.post(
+            "/api/face/enroll",
+            json={
+                "angle": "front",
+                "image_base64": fake_face_image_b64,
+            },
+            headers=headers,
+        )
 
     with patch("backend.services.face_service.face_service.verify_face") as mock_verify:
         mock_verify.return_value = (True, 0.92, 3)
@@ -94,19 +115,26 @@ async def test_face_match_known_user(client: AsyncClient, sample_user_data: dict
 async def test_face_no_match_unknown(client: AsyncClient, sample_user_data: dict, fake_face_image_b64: str):
     """Face verification rejects an unknown face."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     with patch("backend.services.face_service.face_service.enroll_face") as mock_enroll:
         mock_enroll.return_value = ("encrypted_blob_b64", "nonce_b64", 0.9)
-        await client.post("/api/face/enroll", json={
-            "angle": "front",
-            "image_base64": fake_face_image_b64,
-        }, headers=headers)
+        await client.post(
+            "/api/face/enroll",
+            json={
+                "angle": "front",
+                "image_base64": fake_face_image_b64,
+            },
+            headers=headers,
+        )
 
     with patch("backend.services.face_service.face_service.verify_face") as mock_verify:
         mock_verify.return_value = (False, 0.25, 0)
@@ -153,13 +181,9 @@ async def test_encryption_roundtrip():
     original = np.random.randn(128).astype(np.float64)
     original_bytes = original.tobytes()
 
-    encrypted_b64, nonce_b64 = encryption_service.encrypt(
-        original_bytes, user_id, salt
-    )
+    encrypted_b64, nonce_b64 = encryption_service.encrypt(original_bytes, user_id, salt)
 
-    decrypted_bytes = encryption_service.decrypt(
-        encrypted_b64, nonce_b64, user_id, salt
-    )
+    decrypted_bytes = encryption_service.decrypt(encrypted_b64, nonce_b64, user_id, salt)
 
     recovered = np.frombuffer(decrypted_bytes, dtype=np.float64)
     np.testing.assert_array_almost_equal(original, recovered)
@@ -169,10 +193,13 @@ async def test_encryption_roundtrip():
 async def test_face_status_endpoint(client: AsyncClient, sample_user_data: dict):
     """Face status endpoint returns enrollment details."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 

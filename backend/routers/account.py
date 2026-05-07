@@ -35,10 +35,7 @@ async def get_activity_logs(
 ):
     """Retrieve recent login activity for the user."""
     result = await db.execute(
-        select(AuditLog)
-        .where(AuditLog.user_id == current_user.id)
-        .order_by(AuditLog.created_at.desc())
-        .limit(20)
+        select(AuditLog).where(AuditLog.user_id == current_user.id).order_by(AuditLog.created_at.desc()).limit(20)
     )
     return result.scalars().all()
 
@@ -50,8 +47,10 @@ async def get_sessions(
     """Placeholder for connected devices (sessions)."""
     # In a full implementation, this would query a Session model.
     # For now, we return a mock based on last login info.
-    return [{
-        "device": "Current Browser",
-        "ip": current_user.last_login_ip or "Unknown",
-        "last_active": current_user.last_login_at
-    }]
+    return [
+        {
+            "device": "Current Browser",
+            "ip": current_user.last_login_ip or "Unknown",
+            "last_active": current_user.last_login_at,
+        }
+    ]

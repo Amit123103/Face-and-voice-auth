@@ -62,13 +62,13 @@ async def set_voice_passphrase(
         current_user.email,
         "Voice Passphrase Enabled",
         f"A new custom voice password has been set: '{actual_transcription}'. "
-        "This will now be required for secure transactions."
+        "This will now be required for secure transactions.",
     )
 
     return {
         "status": "success",
         "passphrase": actual_transcription,
-        "message": f"Voice password set to: '{actual_transcription}'"
+        "message": f"Voice password set to: '{actual_transcription}'",
     }
 
 
@@ -87,7 +87,7 @@ async def disable_voice_passphrase(
         email_service.send_security_alert,
         current_user.email,
         "Voice Passphrase Disabled",
-        "Your voice passphrase requirement has been disabled. Your security score has been updated."
+        "Your voice passphrase requirement has been disabled. Your security score has been updated.",
     )
     return {"status": "success", "message": "Voice password disabled"}
 
@@ -139,19 +139,19 @@ async def upload_voice_sample(
     if len(session_data["samples"]) >= settings.VOICE_MAX_SAMPLES:
         raise HTTPException(status_code=400, detail="Maximum samples reached")
 
-    is_ok, quality, snr, duration, feedback = voice_service.assess_sample_quality(
-        data.audio_base64
-    )
+    is_ok, quality, snr, duration, feedback = voice_service.assess_sample_quality(data.audio_base64)
 
     if is_ok:
         try:
             enc_b64, nonce_b64, q, s, d = await voice_service.enroll_sample(
                 data.audio_base64, current_user.id, current_user.encryption_salt
             )
-            session_data["samples"].append({
-                "ciphertext_b64": enc_b64,
-                "nonce_b64": nonce_b64,
-            })
+            session_data["samples"].append(
+                {
+                    "ciphertext_b64": enc_b64,
+                    "nonce_b64": nonce_b64,
+                }
+            )
             session_data["quality_scores"].append(quality)
             session_data["snr_values"].append(snr)
         except ValueError as e:
@@ -188,8 +188,7 @@ async def complete_voice_enrollment(
     if len(session_data["samples"]) < settings.VOICE_MIN_SAMPLES:
         raise HTTPException(
             status_code=400,
-            detail=f"Need at least {settings.VOICE_MIN_SAMPLES} samples, "
-                   f"got {len(session_data['samples'])}",
+            detail=f"Need at least {settings.VOICE_MIN_SAMPLES} samples, " f"got {len(session_data['samples'])}",
         )
 
     old_result = await db.execute(
@@ -230,7 +229,7 @@ async def complete_voice_enrollment(
         email_service.send_security_alert,
         current_user.email,
         "Voice Enrollment Complete",
-        "Your voice profile has been successfully generated. Voice-based authentication is now active."
+        "Your voice profile has been successfully generated. Voice-based authentication is now active.",
     )
 
     del _enrollment_sessions[session_id]
@@ -375,7 +374,7 @@ async def delete_voice_enrollment(
         email_service.send_security_alert,
         current_user.email,
         "Voice Enrollment Deleted",
-        "Your voice biometric data has been removed from the system."
+        "Your voice biometric data has been removed from the system.",
     )
 
     return {"message": f"Deleted {len(prints)} voice prints"}

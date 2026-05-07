@@ -33,13 +33,13 @@ class EmailService:
             return
 
         msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = self.user or "noreply@facevoiceauth.local"
-        msg['To'] = to_email
+        msg["Subject"] = subject
+        msg["From"] = self.user or "noreply@facevoiceauth.local"
+        msg["To"] = to_email
         msg.set_content(body)
 
         if html_content:
-            msg.add_alternative(html_content, subtype='html')
+            msg.add_alternative(html_content, subtype="html")
 
         try:
             with smtplib.SMTP(self.host, self.port) as server:
@@ -56,9 +56,10 @@ class EmailService:
         """Generate a consistent premium HTML template for emails."""
         action_btn = (
             f'<a href="{action_url}" style="display: inline-block; padding: 12px 24px; '
-            'background-color: #0d9488; color: white; text-decoration: none; border-radius: 8px; '
+            "background-color: #0d9488; color: white; text-decoration: none; border-radius: 8px; "
             f'font-weight: bold; margin-top: 20px;">{action_text}</a>'
-            if action_text else ''
+            if action_text
+            else ""
         )
 
         return f"""
@@ -93,10 +94,7 @@ class EmailService:
             "You have been credited with a starting balance of $1000.00 to try out the network."
         )
         html = self._get_html_template(
-            "Welcome aboard!",
-            content,
-            "Go to Dashboard",
-            "http://localhost:8000/dashboard.html"
+            "Welcome aboard!", content, "Go to Dashboard", "http://localhost:8000/dashboard.html"
         )
         self.send_email(to_email, subject, content, html)
 
@@ -105,10 +103,7 @@ class EmailService:
         subject = f"Security Alert: {event_name}"
         content = f"We detected a critical event on your account:<br><br><b>{event_name}</b><br>{detail}"
         html = self._get_html_template(
-            "Security Notification",
-            content,
-            "Secure Account",
-            "http://localhost:8000/dashboard.html"
+            "Security Notification", content, "Secure Account", "http://localhost:8000/dashboard.html"
         )
         self.send_email(to_email, subject, content, html)
 
@@ -119,7 +114,7 @@ class EmailService:
         self.send_security_alert(
             to_email,
             "Failed Login Attempt",
-            f"Unauthorized access attempt blocked.<br>Method: {method}<br>IP Address: {ip}"
+            f"Unauthorized access attempt blocked.<br>Method: {method}<br>IP Address: {ip}",
         )
 
 

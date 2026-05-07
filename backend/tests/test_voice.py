@@ -33,10 +33,13 @@ def _make_wav_b64(duration: float = 4.0, sample_rate: int = 16000) -> str:
 async def test_voice_enroll_start(client: AsyncClient, sample_user_data: dict):
     """Starting voice enrollment returns a challenge PIN."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -80,16 +83,16 @@ async def test_voice_verify_cosine_similarity():
 
     embedding = np.random.randn(256).astype(np.float64)
     embedding /= np.linalg.norm(embedding)
-    enc_b64, nonce_b64 = encryption_service.encrypt(
-        embedding.tobytes(), user_id, salt
-    )
+    enc_b64, nonce_b64 = encryption_service.encrypt(embedding.tobytes(), user_id, salt)
 
     decrypted = encryption_service.decrypt(enc_b64, nonce_b64, user_id, salt)
     recovered = np.frombuffer(decrypted, dtype=np.float64)
-    similarity = float(np.dot(
-        embedding / np.linalg.norm(embedding),
-        recovered / np.linalg.norm(recovered),
-    ))
+    similarity = float(
+        np.dot(
+            embedding / np.linalg.norm(embedding),
+            recovered / np.linalg.norm(recovered),
+        )
+    )
     assert similarity > 0.99
 
 
@@ -122,10 +125,13 @@ async def test_voice_liveness_silence_detection():
 async def test_voice_status_endpoint(client: AsyncClient, sample_user_data: dict):
     """Voice status endpoint returns enrollment details."""
     await client.post("/api/auth/register", json=sample_user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": sample_user_data["email"],
+            "password": sample_user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -145,9 +151,7 @@ async def test_voice_encryption_roundtrip():
     salt = encryption_service.generate_salt()
 
     original = np.random.randn(256).astype(np.float64)
-    enc_b64, nonce_b64 = encryption_service.encrypt(
-        original.tobytes(), user_id, salt
-    )
+    enc_b64, nonce_b64 = encryption_service.encrypt(original.tobytes(), user_id, salt)
     decrypted = encryption_service.decrypt(enc_b64, nonce_b64, user_id, salt)
     recovered = np.frombuffer(decrypted, dtype=np.float64)
 

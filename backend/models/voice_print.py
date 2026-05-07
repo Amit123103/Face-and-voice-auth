@@ -24,9 +24,7 @@ class VoicePrint(Base):
     __tablename__ = "voice_prints"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     embedding_blob = Column(Text, nullable=False)
     embedding_nonce = Column(String(44), nullable=True)
     sample_count = Column(Integer, default=0, nullable=False)

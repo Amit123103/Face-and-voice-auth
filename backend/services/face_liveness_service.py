@@ -100,7 +100,7 @@ class FaceLivenessService:
             x_values = [p[0] for p in positions]
             x_delta = max(x_values) - min(x_values)
             first_half = np.mean(x_values[: len(x_values) // 2])
-            second_half = np.mean(x_values[len(x_values) // 2:])
+            second_half = np.mean(x_values[len(x_values) // 2 :])
             matched = x_delta > 20.0 and second_half < first_half
             confidence = min(x_delta / 40.0, 1.0)
 
@@ -108,7 +108,7 @@ class FaceLivenessService:
             x_values = [p[0] for p in positions]
             x_delta = max(x_values) - min(x_values)
             first_half = np.mean(x_values[: len(x_values) // 2])
-            second_half = np.mean(x_values[len(x_values) // 2:])
+            second_half = np.mean(x_values[len(x_values) // 2 :])
             matched = x_delta > 20.0 and second_half > first_half
             confidence = min(x_delta / 40.0, 1.0)
 
@@ -117,9 +117,7 @@ class FaceLivenessService:
 
         return matched, round(confidence, 3)
 
-    def check_depth_cues(
-        self, landmarks_sequence: List[np.ndarray]
-    ) -> Tuple[bool, float]:
+    def check_depth_cues(self, landmarks_sequence: List[np.ndarray]) -> Tuple[bool, float]:
         """
         Analyze facial symmetry and scale consistency as depth cues.
         Flat images (photos/screens) show unnaturally consistent symmetry.

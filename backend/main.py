@@ -39,11 +39,13 @@ def _preload_ml_models() -> None:
     """Pre-load ML models in a background thread so startup isn't blocked."""
     try:
         from backend.services.face_service import face_service
+
         logger.info(f"Face model ready: {face_service.is_ready}")
     except Exception as e:
         logger.warning(f"Face model pre-load skipped: {e}")
     try:
         from backend.services.voice_service import voice_service
+
         logger.info(f"Voice model ready: {voice_service.is_ready}")
     except Exception as e:
         logger.warning(f"Voice model pre-load skipped: {e}")
@@ -57,6 +59,7 @@ async def lifespan(app: FastAPI):
 
     await init_db()
     from backend.database import sync_database_schema
+
     await sync_database_schema()
     logger.info("Database initialized and synchronized")
 
@@ -82,9 +85,7 @@ async def _seed_admin_user() -> None:
     from sqlalchemy import select
 
     async with async_session_factory() as db:
-        result = await db.execute(
-            select(User).where(User.email == settings.ADMIN_EMAIL)
-        )
+        result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
         if result.scalar_one_or_none() is None:
             salt = encryption_service.generate_salt()
             admin = User(

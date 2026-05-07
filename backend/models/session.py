@@ -15,9 +15,7 @@ class SessionRecord(Base):
     __tablename__ = "sessions"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     refresh_token_hash = Column(String(255), nullable=False, unique=True)
     device_info = Column(String(500), nullable=True)
     ip_address = Column(String(45), nullable=True)

@@ -81,17 +81,19 @@ async def list_transactions(
         rx = await db.execute(select(User.email).where(User.id == txn.receiver_id))
         rx_email = rx.scalar_one()
 
-        response_list.append(TransactionResponse(
-            id=txn.id,
-            sender_email=sender_email,
-            receiver_email=rx_email,
-            amount=txn.amount,
-            status=txn.status,
-            sender_face_verified=txn.sender_face_verified,
-            receiver_face_verified=txn.receiver_face_verified,
-            admin_approved=txn.admin_approved,
-            created_at=txn.created_at,
-        ))
+        response_list.append(
+            TransactionResponse(
+                id=txn.id,
+                sender_email=sender_email,
+                receiver_email=rx_email,
+                amount=txn.amount,
+                status=txn.status,
+                sender_face_verified=txn.sender_face_verified,
+                receiver_face_verified=txn.receiver_face_verified,
+                admin_approved=txn.admin_approved,
+                created_at=txn.created_at,
+            )
+        )
 
     return response_list
 

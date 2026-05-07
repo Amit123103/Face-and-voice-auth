@@ -44,6 +44,7 @@ async_session_factory = async_sessionmaker(
 
 class Base(DeclarativeBase):
     """Declarative base for all ORM models."""
+
     pass
 
 
@@ -99,10 +100,11 @@ async def sync_database_schema() -> None:
             ("sender_face_verified", "BOOLEAN", "FALSE"),
             ("receiver_face_verified", "BOOLEAN", "FALSE"),
             ("admin_approved", "BOOLEAN", "FALSE"),
-        ]
+        ],
     }
 
     async with engine.connect() as conn:
+
         def get_columns(target_conn, table_name):
             inst = inspect(target_conn)
             return [c["name"] for c in inst.get_columns(table_name)]

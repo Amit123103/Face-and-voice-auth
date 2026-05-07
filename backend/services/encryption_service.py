@@ -49,9 +49,7 @@ class EncryptionService:
         """Generate a random 16-byte salt, returned as base64 string."""
         return base64.b64encode(os.urandom(SALT_SIZE)).decode("utf-8")
 
-    def encrypt(
-        self, plaintext: bytes, user_id: str, salt_b64: str
-    ) -> Tuple[str, str]:
+    def encrypt(self, plaintext: bytes, user_id: str, salt_b64: str) -> Tuple[str, str]:
         """
         Encrypt plaintext bytes with AES-256-GCM.
 
@@ -68,9 +66,7 @@ class EncryptionService:
             base64.b64encode(nonce).decode("utf-8"),
         )
 
-    def encrypt_binary(
-        self, plaintext: bytes, user_id: str, salt_b64: str
-    ) -> Tuple[bytes, bytes]:
+    def encrypt_binary(self, plaintext: bytes, user_id: str, salt_b64: str) -> Tuple[bytes, bytes]:
         """
         Encrypt raw bytes with AES-256-GCM without Base64 overhead.
         Returns:
@@ -83,9 +79,7 @@ class EncryptionService:
         ciphertext = aesgcm.encrypt(nonce, plaintext, None)
         return ciphertext, nonce
 
-    def decrypt_binary(
-        self, ciphertext: bytes, nonce: bytes, user_id: str, salt_b64: str
-    ) -> bytes:
+    def decrypt_binary(self, ciphertext: bytes, nonce: bytes, user_id: str, salt_b64: str) -> bytes:
         """
         Decrypt raw bytes with AES-256-GCM.
         Returns:
@@ -96,9 +90,7 @@ class EncryptionService:
         aesgcm = AESGCM(user_key)
         return aesgcm.decrypt(nonce, ciphertext, None)
 
-    def decrypt(
-        self, ciphertext_b64: str, nonce_b64: str, user_id: str, salt_b64: str
-    ) -> bytes:
+    def decrypt(self, ciphertext_b64: str, nonce_b64: str, user_id: str, salt_b64: str) -> bytes:
         """
         Decrypt a base64-encoded ciphertext with AES-256-GCM.
 
@@ -140,9 +132,7 @@ class EncryptionService:
                 old_salt_b64,
             )
             new_ct, new_nonce = self.encrypt(plaintext, user_id, new_salt_b64)
-            re_encrypted.append(
-                {"ciphertext_b64": new_ct, "nonce_b64": new_nonce}
-            )
+            re_encrypted.append({"ciphertext_b64": new_ct, "nonce_b64": new_nonce})
         return new_salt_b64, re_encrypted
 
 

@@ -13,9 +13,7 @@ from backend.database import Base
 
 class SecretVault(Base):
     __tablename__ = "secret_vault"
-    __table_args__ = (
-        Index('idx_vault_owner_cat_type', 'user_id', 'category', 'secret_type'),
-    )
+    __table_args__ = (Index("idx_vault_owner_cat_type", "user_id", "category", "secret_type"),)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
@@ -27,8 +25,6 @@ class SecretVault(Base):
     nonce_b64 = Column(String(100), nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     user = relationship("User")

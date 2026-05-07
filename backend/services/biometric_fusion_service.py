@@ -71,47 +71,61 @@ class BiometricFusionService:
         vc = voice_confidence if voice_confidence is not None else 0.0
 
         if not face_available and not voice_available:
-            return False, 0.0, "Both biometric inputs unavailable", {
-                "face_available": False,
-                "voice_available": False,
-                "decision": "rejected",
-            }
+            return (
+                False,
+                0.0,
+                "Both biometric inputs unavailable",
+                {
+                    "face_available": False,
+                    "voice_available": False,
+                    "decision": "rejected",
+                },
+            )
 
         if not face_available or not voice_available:
             if not fallback_allowed:
                 missing = "camera" if not face_available else "microphone"
-                return False, 0.0, (
-                    f"Single-modal fallback not allowed. {missing} input missing."
-                ), {
-                    "face_available": face_available,
-                    "voice_available": voice_available,
-                    "fallback_allowed": False,
-                    "decision": "rejected_no_fallback",
-                }
+                return (
+                    False,
+                    0.0,
+                    (f"Single-modal fallback not allowed. {missing} input missing."),
+                    {
+                        "face_available": face_available,
+                        "voice_available": voice_available,
+                        "fallback_allowed": False,
+                        "decision": "rejected_no_fallback",
+                    },
+                )
 
             if face_available and not voice_available:
                 passed = fc >= settings.FUSION_INDIVIDUAL_MIN
-                return passed, fc, (
-                    "Voice unavailable, single-modal face fallback"
-                ), {
-                    "face_available": True,
-                    "voice_available": False,
-                    "fallback_mode": "face_only",
-                    "face_confidence": round(fc, 4),
-                    "decision": "accepted_fallback" if passed else "rejected_fallback",
-                }
+                return (
+                    passed,
+                    fc,
+                    ("Voice unavailable, single-modal face fallback"),
+                    {
+                        "face_available": True,
+                        "voice_available": False,
+                        "fallback_mode": "face_only",
+                        "face_confidence": round(fc, 4),
+                        "decision": "accepted_fallback" if passed else "rejected_fallback",
+                    },
+                )
 
             if voice_available and not face_available:
                 passed = vc >= settings.FUSION_INDIVIDUAL_MIN
-                return passed, vc, (
-                    "Face unavailable, single-modal voice fallback"
-                ), {
-                    "face_available": False,
-                    "voice_available": True,
-                    "fallback_mode": "voice_only",
-                    "voice_confidence": round(vc, 4),
-                    "decision": "accepted_fallback" if passed else "rejected_fallback",
-                }
+                return (
+                    passed,
+                    vc,
+                    ("Face unavailable, single-modal voice fallback"),
+                    {
+                        "face_available": False,
+                        "voice_available": True,
+                        "fallback_mode": "voice_only",
+                        "voice_confidence": round(vc, 4),
+                        "decision": "accepted_fallback" if passed else "rejected_fallback",
+                    },
+                )
 
         fusion_score, breakdown = self.compute_fusion_score(fc, vc)
 
@@ -146,9 +160,7 @@ class BiometricFusionService:
         }
 
         logger.info(
-            f"Biometric fusion: score={fusion_score:.3f}, "
-            f"face={fc:.3f}, voice={vc:.3f}, "
-            f"decision={decision}"
+            f"Biometric fusion: score={fusion_score:.3f}, " f"face={fc:.3f}, voice={vc:.3f}, " f"decision={decision}"
         )
 
         return authenticated, fusion_score, reason, audit_details

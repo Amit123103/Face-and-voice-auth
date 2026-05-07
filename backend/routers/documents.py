@@ -51,11 +51,7 @@ async def upload_document(
         plaintext = await file.read()
 
         # Encrypt content
-        ciphertext, nonce = encryption_service.encrypt_binary(
-            plaintext,
-            current_user.id,
-            current_user.encryption_salt
-        )
+        ciphertext, nonce = encryption_service.encrypt_binary(plaintext, current_user.id, current_user.encryption_salt)
 
         # Save encrypted content
         with open(file_path, "wb") as buffer:
@@ -70,7 +66,7 @@ async def upload_document(
             storage_path=str(file_path),
             content_type=file.content_type or "application/octet-stream",
             file_size=len(plaintext),
-            nonce_b64=nonce_b64
+            nonce_b64=nonce_b64,
         )
         db.add(doc)
         await db.commit()
@@ -103,9 +99,7 @@ async def download_document(
     current_user: User = Depends(get_current_user),
 ):
     """Stream file back to user."""
-    result = await db.execute(
-        select(Document).where(Document.id == doc_id, Document.user_id == current_user.id)
-    )
+    result = await db.execute(select(Document).where(Document.id == doc_id, Document.user_id == current_user.id))
     doc = result.scalar_one_or_none()
 
     if not doc or not Path(doc.storage_path).exists():
@@ -118,18 +112,13 @@ async def download_document(
 
         # Decrypt
         nonce = base64.b64decode(doc.nonce_b64)
-        plaintext = encryption_service.decrypt_binary(
-            ciphertext,
-            nonce,
-            current_user.id,
-            current_user.encryption_salt
-        )
+        plaintext = encryption_service.decrypt_binary(ciphertext, nonce, current_user.id, current_user.encryption_salt)
 
         # Stream back decrypted content
         return StreamingResponse(
             io.BytesIO(plaintext),
             media_type=doc.content_type,
-            headers={"Content-Disposition": f"attachment; filename={doc.filename}"}
+            headers={"Content-Disposition": f"attachment; filename={doc.filename}"},
         )
     except Exception:
         raise HTTPException(status_code=500, detail="Decryption failed during download")
@@ -142,9 +131,7 @@ async def delete_document(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a document."""
-    result = await db.execute(
-        select(Document).where(Document.id == doc_id, Document.user_id == current_user.id)
-    )
+    result = await db.execute(select(Document).where(Document.id == doc_id, Document.user_id == current_user.id))
     doc = result.scalar_one_or_none()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")

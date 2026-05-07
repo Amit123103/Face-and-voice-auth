@@ -24,9 +24,7 @@ class FaceEncoding(Base):
     __tablename__ = "face_encodings"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     angle_label = Column(String(20), nullable=False)
     encoding_blob = Column(Text, nullable=False)
     encoding_nonce = Column(String(44), nullable=True)

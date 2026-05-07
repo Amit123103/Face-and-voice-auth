@@ -20,14 +20,18 @@ async def _create_admin_and_login(client: AsyncClient) -> str:
     }
     await client.post("/api/auth/register", json=admin_data)
 
-    login_resp = await client.post("/api/auth/login", json={
-        "email": admin_data["email"],
-        "password": admin_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": admin_data["email"],
+            "password": admin_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
 
     from jose import jwt
     from backend.config import get_settings
+
     settings = get_settings()
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     user_id = payload["sub"]
@@ -47,10 +51,13 @@ async def _create_regular_user(client: AsyncClient) -> tuple:
     reg_resp = await client.post("/api/auth/register", json=user_data)
     user_id = reg_resp.json()["id"]
 
-    login_resp = await client.post("/api/auth/login", json={
-        "email": user_data["email"],
-        "password": user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": user_data["email"],
+            "password": user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
     return token, user_id
 
@@ -62,9 +69,14 @@ async def test_admin_list_users_paginated(client: AsyncClient, sample_user_data:
 
     with patch("backend.routers.admin.require_admin") as mock_admin:
         from backend.models.user import User, UserRole
+
         mock_user = User(
-            id="admin-id", email="admin@test.com", username="testadmin",
-            full_name="Test Admin", hashed_password="x", role=UserRole.ADMIN,
+            id="admin-id",
+            email="admin@test.com",
+            username="testadmin",
+            full_name="Test Admin",
+            hashed_password="x",
+            role=UserRole.ADMIN,
         )
         mock_admin.return_value = mock_user
 
@@ -87,10 +99,13 @@ async def test_non_admin_cannot_access(client: AsyncClient):
         "auth_mode": "password",
     }
     await client.post("/api/auth/register", json=user_data)
-    login_resp = await client.post("/api/auth/login", json={
-        "email": user_data["email"],
-        "password": user_data["password"],
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "email": user_data["email"],
+            "password": user_data["password"],
+        },
+    )
     token = login_resp.json()["access_token"]
 
     response = await client.get(
