@@ -65,8 +65,10 @@ class EmailService:
         <html>
         <body style="font-family: sans-serif; color: #1f2937; line-height: 1.6; margin: 0; padding: 0;">
             <div style="background-color: #f3f4f6; padding: 40px 20px;">
-                <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <div style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); padding: 30px; text-align: center; color: white;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px;
+                    overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <div style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); padding: 30px;
+                        text-align: center; color: white;">
                         <h1 style="margin: 0; font-size: 24px;">🛡️ FaceVoiceAuth</h1>
                     </div>
                     <div style="padding: 40px;">
@@ -114,6 +116,11 @@ class EmailService:
         self.send_security_alert(to_email, "New Login Detected", f"Method: {method}<br>IP Address: {ip}")
 
     def send_failed_login_alert(self, to_email: str, ip: str, method: str):
-        self.send_security_alert(to_email, "Failed Login Attempt", f"Unauthorized access attempt blocked.<br>Method: {method}<br>IP Address: {ip}")
+        self.send_security_alert(
+            to_email,
+            "Failed Login Attempt",
+            f"Unauthorized access attempt blocked.<br>Method: {method}<br>IP Address: {ip}"
+        )
+
 
 email_service = EmailService()

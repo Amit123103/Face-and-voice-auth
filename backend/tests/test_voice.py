@@ -12,7 +12,6 @@ import pytest
 from httpx import AsyncClient
 
 
-
 def _make_wav_b64(duration: float = 4.0, sample_rate: int = 16000) -> str:
     """Generate a synthetic WAV file as base64."""
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
@@ -84,8 +83,6 @@ async def test_voice_verify_cosine_similarity():
     enc_b64, nonce_b64 = encryption_service.encrypt(
         embedding.tobytes(), user_id, salt
     )
-
-
 
     decrypted = encryption_service.decrypt(enc_b64, nonce_b64, user_id, salt)
     recovered = np.frombuffer(decrypted, dtype=np.float64)

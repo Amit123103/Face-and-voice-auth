@@ -31,7 +31,7 @@ async def create_secret(
             current_user.id,
             current_user.encryption_salt,
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Encryption failure")
 
     secret = SecretVault(
@@ -117,7 +117,7 @@ async def update_secret(
             current_user.id,
             current_user.encryption_salt,
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Encryption failure")
 
     secret.title = data.title

@@ -80,14 +80,7 @@ async def prometheus_metrics():
     if _metrics["voice_verify_total"] > 0:
         avg_voice_latency = _metrics["voice_verify_latency_sum_ms"] / _metrics["voice_verify_total"]
 
-    if _metrics["fusion_scores"]:
-        scores = _metrics["fusion_scores"]
-        # fusion_stats = {
-        #     "count": len(scores),
-        #     "mean": round(sum(scores) / len(scores), 4),
-        #     "min": round(min(scores), 4),
-        #     "max": round(max(scores), 4),
-        # }
+    # Note: Fusion scores are recorded but not currently exposed in metrics
 
     auth_total = _metrics["auth_success_total"] + _metrics["auth_failure_total"]
     success_rate = 0
