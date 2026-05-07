@@ -2,7 +2,7 @@
 Transaction Router — dual-biometric payment transactions.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -80,7 +80,7 @@ async def list_transactions(
         # Get receiver email
         rx = await db.execute(select(User.email).where(User.id == txn.receiver_id))
         rx_email = rx.scalar_one()
-        
+
         response_list.append(TransactionResponse(
             id=txn.id,
             sender_email=sender_email,

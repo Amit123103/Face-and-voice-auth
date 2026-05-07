@@ -28,7 +28,7 @@ class Transaction(Base):
     receiver_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Float, nullable=False)
     status = Column(Enum(TransactionStatus), default=TransactionStatus.PENDING, nullable=False, index=True)
-    
+
     sender_face_verified = Column(Boolean, default=False, nullable=False)
     receiver_face_verified = Column(Boolean, default=False, nullable=False)
     admin_approved = Column(Boolean, default=False, nullable=False)
@@ -41,4 +41,3 @@ class Transaction(Base):
     # Relationships
     sender = relationship("User", foreign_keys=[sender_id])
     receiver = relationship("User", foreign_keys=[receiver_id])
-

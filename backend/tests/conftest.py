@@ -2,10 +2,17 @@
 Shared test fixtures for the FaceVoiceAuth test suite.
 """
 
-import asyncio
-import base64
 import os
-import struct
+import base64
+
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_facevoiceauth.db"
+os.environ["ASYNC_DATABASE_URL"] = "sqlite+aiosqlite:///./test_facevoiceauth.db"
+os.environ["ENVIRONMENT"] = "test"
+os.environ["SECRET_KEY"] = "a" * 64
+os.environ["MASTER_KEY"] = base64.b64encode(b"k" * 32).decode()
+os.environ["REDIS_URL"] = "memory://"
+os.environ["BACKUP_DIR"] = "./test_backups"
+
 import wave
 import io
 from typing import AsyncGenerator
@@ -20,16 +27,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_facevoiceauth.db"
-os.environ["ASYNC_DATABASE_URL"] = "sqlite+aiosqlite:///./test_facevoiceauth.db"
-os.environ["ENVIRONMENT"] = "test"
-os.environ["SECRET_KEY"] = "a" * 64
-os.environ["MASTER_KEY"] = base64.b64encode(b"k" * 32).decode()
-os.environ["REDIS_URL"] = "memory://"
-os.environ["BACKUP_DIR"] = "./test_backups"
+from backend.database import Base, get_db  # noqa: E402
+from backend.main import app  # noqa: E402
 
-from backend.database import Base, get_db
-from backend.main import app
+
 
 
 test_engine = create_async_engine(

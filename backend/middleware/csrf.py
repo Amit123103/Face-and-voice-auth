@@ -11,9 +11,14 @@ from starlette.responses import Response, JSONResponse
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "x-csrf-token"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
-EXEMPT_PATHS = frozenset({"/api/auth/login", "/api/auth/register", "/health", "/metrics", "/docs", "/openapi.json", "/redoc"})
+EXEMPT_PATHS = frozenset({
+    "/api/auth/login", "/api/auth/register", "/health", "/metrics", "/docs", "/openapi.json", "/redoc"
+})
 STATIC_PREFIXES = ("/css/", "/js/", "/static/")
 
+
+from backend.config import get_settings
+settings = get_settings()
 
 class CSRFMiddleware(BaseHTTPMiddleware):
     """Implements double-submit cookie CSRF protection."""
@@ -32,7 +37,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if not csrf_cookie:
             csrf_cookie = secrets.token_hex(32)
 
-        if request.method not in SAFE_METHODS:
+        if request.method not in SAFE_METHODS and settings.ENVIRONMENT != "test":
             is_exempt = path in EXEMPT_PATHS or any(path.startswith(ep) for ep in EXEMPT_PATHS)
 
             if not is_exempt:

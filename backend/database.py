@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
-from sqlalchemy import event, text
+from sqlalchemy import text
 
 from backend.config import get_settings
 

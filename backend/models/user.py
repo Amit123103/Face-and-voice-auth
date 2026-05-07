@@ -44,7 +44,7 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     auth_mode = Column(Enum(AuthMode), default=AuthMode.PASSWORD, nullable=False)
     fallback_allowed = Column(Boolean, default=False, nullable=False)
-    
+
     balance = Column(Float, default=1000.0, nullable=False)
 
     is_active = Column(Boolean, default=True, nullable=False)

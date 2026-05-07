@@ -22,7 +22,7 @@ class SecretVault(Base):
     title = Column(String(255), nullable=False)
     category = Column(String(50), nullable=False, default="Personal")
     secret_type = Column(String(50), nullable=False, default="Note")
-    
+
     ciphertext_b64 = Column(Text, nullable=False)
     nonce_b64 = Column(String(100), nullable=False)
 

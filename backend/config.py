@@ -3,7 +3,6 @@ FaceVoiceAuth — Application Configuration
 Loads all environment variables with validation and sensible defaults.
 """
 
-import os
 import base64
 import secrets
 from pathlib import Path

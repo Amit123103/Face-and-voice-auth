@@ -6,10 +6,8 @@ Optimized for speed: thread pool for CPU-bound work, vectorized distance computa
 
 import asyncio
 import base64
-import io
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -89,12 +87,20 @@ class FaceService:
 
             class _SimRect:
                 """Simulated dlib rectangle when dlib is not installed."""
-                def __init__(self, l, t, r, b):
-                    self._left, self._top, self._right, self._bottom = l, t, r, b
-                def left(self): return self._left
-                def top(self): return self._top
-                def right(self): return self._right
-                def bottom(self): return self._bottom
+                def __init__(self, left_val, t, r, b):
+                    self._left, self._top, self._right, self._bottom = left_val, t, r, b
+
+                def left(self):
+                    return self._left
+
+                def top(self):
+                    return self._top
+
+                def right(self):
+                    return self._right
+
+                def bottom(self):
+                    return self._bottom
 
             return [_SimRect(int(w * 0.25), int(h * 0.25), int(w * 0.75), int(h * 0.75))]
 

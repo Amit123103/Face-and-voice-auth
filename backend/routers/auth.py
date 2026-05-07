@@ -2,8 +2,7 @@
 Auth Router — password login, registration, JWT refresh, TOTP, and session management.
 """
 
-from datetime import datetime
-from typing import Optional
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +16,6 @@ from backend.schemas.auth import (
     TOTPVerifyRequest,
     SessionListResponse,
     SessionResponse,
-    LockoutStatusResponse,
 )
 from backend.schemas.user import UserCreate, UserResponse, PasswordStrengthResponse
 from backend.services.auth_service import auth_service
@@ -224,9 +222,9 @@ async def verify_totp(
     await db.flush()
 
     background_tasks.add_task(
-        email_service.send_security_alert, 
-        current_user.email, 
-        "2FA Enabled", 
+        email_service.send_security_alert,
+        current_user.email,
+        "2FA Enabled",
         "TOTP-based two-factor authentication has been successfully enabled on your account."
     )
 

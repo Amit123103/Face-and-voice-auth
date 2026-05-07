@@ -13,9 +13,11 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
+
+from backend.routers import auth, face, voice, biometric, admin, health, transaction, documents, vault, account
 
 from backend.config import get_settings
 from backend.database import init_db, close_db
@@ -105,7 +107,10 @@ async def _seed_admin_user() -> None:
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Enterprise tri-modal biometric authentication platform with face recognition, voice verification, and password login.",
+    description=(
+        "Enterprise tri-modal biometric authentication platform with "
+        "face recognition, voice verification, and password login."
+    ),
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
@@ -168,7 +173,6 @@ async def not_found_handler(request: Request, exc) -> JSONResponse:
 
 
 # ── Import and mount routers ──
-from backend.routers import auth, face, voice, biometric, admin, health, transaction, documents, vault, account
 
 app.include_router(auth.router)
 app.include_router(face.router)
@@ -212,24 +216,28 @@ async def root():
 
 
 # ── Serve frontend HTML pages ──
-from fastapi.responses import FileResponse
+
 
 @app.get("/index.html", include_in_schema=False)
 @app.get("/home", include_in_schema=False)
 async def serve_index():
     return FileResponse(str(_frontend_dir / "index.html"), media_type="text/html")
 
+
 @app.get("/login.html", include_in_schema=False)
 async def serve_login():
     return FileResponse(str(_frontend_dir / "login.html"), media_type="text/html")
+
 
 @app.get("/register.html", include_in_schema=False)
 async def serve_register():
     return FileResponse(str(_frontend_dir / "register.html"), media_type="text/html")
 
+
 @app.get("/dashboard.html", include_in_schema=False)
 async def serve_dashboard():
     return FileResponse(str(_frontend_dir / "dashboard.html"), media_type="text/html")
+
 
 @app.get("/admin.html", include_in_schema=False)
 async def serve_admin():

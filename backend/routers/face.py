@@ -2,7 +2,7 @@
 Face Router — face enrollment and face-based authentication endpoints.
 """
 
-from typing import List
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy import select, and_, func
@@ -21,8 +21,6 @@ from backend.schemas.face import (
     FaceStatusResponse,
 )
 from backend.services.face_service import face_service, VALID_ANGLES
-from backend.services.face_liveness_service import face_liveness_service
-from backend.services.auth_service import auth_service
 from backend.services.email_service import email_service
 from backend.config import get_settings
 

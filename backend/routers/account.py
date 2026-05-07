@@ -4,7 +4,7 @@ Account Security Router — Settings, activity logs, and 2FA management.
 
 from typing import List
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -16,6 +16,7 @@ from backend.routers.auth import get_current_user
 
 router = APIRouter(prefix="/api/account", tags=["Account Settings"])
 
+
 class ActivityLogResponse(BaseModel):
     id: str
     action: str
@@ -25,6 +26,7 @@ class ActivityLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 @router.get("/activity", response_model=List[ActivityLogResponse])
 async def get_activity_logs(
@@ -39,6 +41,7 @@ async def get_activity_logs(
         .limit(20)
     )
     return result.scalars().all()
+
 
 @router.get("/sessions")
 async def get_sessions(

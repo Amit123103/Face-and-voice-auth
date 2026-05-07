@@ -9,8 +9,8 @@ from backend.models.document import Document
 from backend.models.vault import SecretVault
 
 __all__ = [
-    "User", "UserRole", "AuthMode", "SessionRecord", 
-    "AuditLog", "FaceEncoding", "VoicePrint", 
+    "User", "UserRole", "AuthMode", "SessionRecord",
+    "AuditLog", "FaceEncoding", "VoicePrint",
     "Transaction", "TransactionStatus",
     "Document", "SecretVault"
 ]

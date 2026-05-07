@@ -3,7 +3,7 @@ Transaction Pydantic schemas.
 """
 
 from datetime import datetime
-from typing import Optional
+
 
 from pydantic import BaseModel, Field
 from backend.models.transaction import TransactionStatus
@@ -24,9 +24,10 @@ class TransactionResponse(BaseModel):
     receiver_face_verified: bool
     admin_approved: bool
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
+
 
 class TransactionFaceVerifyRequest(BaseModel):
     frames: list[str] = Field(..., min_length=1, max_length=10)

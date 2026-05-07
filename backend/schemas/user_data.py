@@ -12,7 +12,7 @@ class DocumentResponse(BaseModel):
     content_type: str
     file_size: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -38,7 +38,7 @@ class VaultListResponse(BaseModel):
     secret_type: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 

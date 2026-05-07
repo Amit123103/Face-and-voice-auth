@@ -5,7 +5,7 @@ Voice Router — voice enrollment and voice-based authentication endpoints.
 import secrets
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,7 +48,7 @@ async def set_voice_passphrase(
     # actual_transcription = await voice_service.transcribe_audio(data.audio_base64)
     # Re-using transcription logic:
     actual_transcription = await voice_service.transcribe_audio(data.audio_base64)
-    
+
     if not actual_transcription or len(actual_transcription) < 4:
         raise HTTPException(status_code=400, detail="Voice passphrase too short or not recognized. Speak clearly.")
 
@@ -69,6 +69,7 @@ async def set_voice_passphrase(
         "passphrase": actual_transcription,
         "message": f"Voice password set to: '{actual_transcription}'"
     }
+
 
 @router.post("/passphrase/disable")
 async def disable_voice_passphrase(

@@ -24,14 +24,15 @@ class AuditMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        path = request.url.path
-
-        # Fast-path: skip audit for static assets and frequent probes
-        if path.startswith(_SKIP_AUDIT_PREFIXES) or path in _SKIP_AUDIT_PATHS:
-            return await call_next(request)
-
         request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
         request.state.request_id = request_id
+        path = request.url.path
+
+        # Fast-path: skip audit logging for static assets and frequent probes
+        if path.startswith(_SKIP_AUDIT_PREFIXES) or path in _SKIP_AUDIT_PATHS:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
 
         start_time = time.perf_counter()  # perf_counter is higher-resolution than time.time()
 

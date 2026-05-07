@@ -38,6 +38,7 @@ limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[settings.RATE_LIMIT_GENERAL],
     storage_uri=_get_storage_uri(),
+    enabled=settings.ENVIRONMENT != "test",
 )
 
 

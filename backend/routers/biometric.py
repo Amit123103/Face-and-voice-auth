@@ -153,14 +153,12 @@ async def biometric_login(
     passphrase_matched = None
     if authenticated and user.voice_passphrase_enabled:
         if not data.voice_audio_base64:
-             authenticated = False
-             message = "Voice passphrase audio required for this account."
+            authenticated = False
         else:
             match, trans = await voice_service.verify_passphrase(data.voice_audio_base64, user.voice_passphrase)
             passphrase_matched = match
             if not match:
                 authenticated = False
-                message = f"Voice password mismatch. You said: '{trans}'"
 
     access_token = None
     expires_in = None
@@ -196,7 +194,6 @@ async def biometric_login(
     else:
         client_ip = request.client.host if request.client else "unknown"
         background_tasks.add_task(email_service.send_failed_login_alert, user.email, client_ip, auth_method)
-        
         user.failed_login_attempts += 1
         if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
             user.is_locked = True

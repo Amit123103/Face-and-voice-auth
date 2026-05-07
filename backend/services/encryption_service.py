@@ -4,7 +4,6 @@ Per-user keys derived via PBKDF2-HMAC-SHA256, master key from environment.
 """
 
 import base64
-import hashlib
 import os
 from typing import Tuple
 
@@ -74,7 +73,6 @@ class EncryptionService:
     ) -> Tuple[bytes, bytes]:
         """
         Encrypt raw bytes with AES-256-GCM without Base64 overhead.
-        
         Returns:
             Tuple of (ciphertext_bytes, nonce_bytes)
         """
@@ -90,7 +88,6 @@ class EncryptionService:
     ) -> bytes:
         """
         Decrypt raw bytes with AES-256-GCM.
-        
         Returns:
             Decrypted plaintext bytes.
         """
