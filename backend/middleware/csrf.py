@@ -8,6 +8,8 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
+from backend.config import get_settings
+
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "x-csrf-token"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
@@ -16,9 +18,8 @@ EXEMPT_PATHS = frozenset({
 })
 STATIC_PREFIXES = ("/css/", "/js/", "/static/")
 
-
-from backend.config import get_settings
 settings = get_settings()
+
 
 class CSRFMiddleware(BaseHTTPMiddleware):
     """Implements double-submit cookie CSRF protection."""

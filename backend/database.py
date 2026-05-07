@@ -115,7 +115,7 @@ async def sync_database_schema() -> None:
                     continue
 
                 existing_cols = await conn.run_sync(get_columns, table)
-                
+
                 for col_name, col_type, col_default in columns:
                     if col_name not in existing_cols:
                         # Construct ALTER TABLE statement
@@ -123,11 +123,11 @@ async def sync_database_schema() -> None:
                         stmt = f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"
                         if col_default != "NULL":
                             stmt += f" DEFAULT {col_default}"
-                        
+
                         await conn.execute(text(stmt))
                         await conn.commit()
                         print(f"DEBUG: Patched database -> Added {table}.{col_name}")
-                        
+
             except Exception as e:
                 print(f"WARNING: Schema sync failed for table {table}: {e}")
 

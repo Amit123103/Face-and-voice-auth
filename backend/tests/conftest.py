@@ -13,24 +13,22 @@ os.environ["MASTER_KEY"] = base64.b64encode(b"k" * 32).decode()
 os.environ["REDIS_URL"] = "memory://"
 os.environ["BACKUP_DIR"] = "./test_backups"
 
-import wave
-import io
-from typing import AsyncGenerator
+import wave  # noqa: E402
+import io  # noqa: E402
+from typing import AsyncGenerator  # noqa: E402
 
-import numpy as np
-import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
+import numpy as np  # noqa: E402
+import pytest  # noqa: E402
+import pytest_asyncio  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
-)
+)  # noqa: E402
 
 from backend.database import Base, get_db  # noqa: E402
 from backend.main import app  # noqa: E402
-
-
 
 
 test_engine = create_async_engine(

@@ -11,6 +11,7 @@ from backend.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
 class EmailService:
     def __init__(self):
         self.host = settings.SMTP_HOST
@@ -53,8 +54,13 @@ class EmailService:
 
     def _get_html_template(self, title: str, content: str, action_text: str = None, action_url: str = None):
         """Generate a consistent premium HTML template for emails."""
-        action_btn = f'<a href="{action_url}" style="display: inline-block; padding: 12px 24px; background-color: #0d9488; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px;">{action_text}</a>' if action_text else ''
-        
+        action_btn = (
+            f'<a href="{action_url}" style="display: inline-block; padding: 12px 24px; '
+            'background-color: #0d9488; color: white; text-decoration: none; border-radius: 8px; '
+            f'font-weight: bold; margin-top: 20px;">{action_text}</a>'
+            if action_text else ''
+        )
+
         return f"""
         <html>
         <body style="font-family: sans-serif; color: #1f2937; line-height: 1.6; margin: 0; padding: 0;">
@@ -80,15 +86,28 @@ class EmailService:
 
     def send_welcome_email(self, to_email: str, name: str):
         subject = "Welcome to FaceVoiceAuth Payment System!"
-        content = f"Hello {name}, your account has been successfully created. You have been credited with a starting balance of $1000.00 to try out the network."
-        html = self._get_html_template("Welcome aboard!", content, "Go to Dashboard", "http://localhost:8000/dashboard.html")
+        content = (
+            f"Hello {name}, your account has been successfully created. "
+            "You have been credited with a starting balance of $1000.00 to try out the network."
+        )
+        html = self._get_html_template(
+            "Welcome aboard!",
+            content,
+            "Go to Dashboard",
+            "http://localhost:8000/dashboard.html"
+        )
         self.send_email(to_email, subject, content, html)
 
     def send_security_alert(self, to_email: str, event_name: str, detail: str):
         """Send a high-priority security alert."""
         subject = f"Security Alert: {event_name}"
         content = f"We detected a critical event on your account:<br><br><b>{event_name}</b><br>{detail}"
-        html = self._get_html_template("Security Notification", content, "Secure Account", "http://localhost:8000/dashboard.html")
+        html = self._get_html_template(
+            "Security Notification",
+            content,
+            "Secure Account",
+            "http://localhost:8000/dashboard.html"
+        )
         self.send_email(to_email, subject, content, html)
 
     def send_login_alert(self, to_email: str, ip: str, method: str):

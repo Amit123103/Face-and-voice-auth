@@ -4,13 +4,13 @@ Test suite for voice authentication — enrollment, verification, liveness.
 
 import base64
 import io
-import struct
+
 import wave
 
 import numpy as np
 import pytest
 from httpx import AsyncClient
-from unittest.mock import patch
+
 
 
 def _make_wav_b64(duration: float = 4.0, sample_rate: int = 16000) -> str:
@@ -85,7 +85,7 @@ async def test_voice_verify_cosine_similarity():
         embedding.tobytes(), user_id, salt
     )
 
-    stored = {"embedding_blob": enc_b64, "embedding_nonce": nonce_b64}
+
 
     decrypted = encryption_service.decrypt(enc_b64, nonce_b64, user_id, salt)
     recovered = np.frombuffer(decrypted, dtype=np.float64)

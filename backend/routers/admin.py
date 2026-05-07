@@ -3,7 +3,6 @@ Admin Router — user management, audit logs, system health, and backup controls
 Requires ADMIN role for all endpoints.
 """
 
-import os
 import platform
 from datetime import datetime, timedelta
 
@@ -301,7 +300,7 @@ async def admin_list_transactions(
     """Admin view of all network transactions."""
     result = await db.execute(select(Transaction).order_by(Transaction.created_at.desc()))
     txns = result.scalars().all()
-    
+
     from backend.routers.transaction import get_transaction_response
     # Convert list using the helper function sequentially
     responses = []
@@ -320,32 +319,32 @@ async def admin_approve_transaction(
     """Admin approves a transaction that has been dual-verified."""
     result = await db.execute(select(Transaction).where(Transaction.id == txn_id))
     txn = result.scalar_one_or_none()
-    
+
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found")
-        
+
     if txn.status != TransactionStatus.RECEIVER_VERIFIED:
         raise HTTPException(status_code=400, detail="Transaction must be verified by both parties before approval")
-        
+
     sender_res = await db.execute(select(User).where(User.id == txn.sender_id))
     sender = sender_res.scalar_one()
-    
+
     receiver_res = await db.execute(select(User).where(User.id == txn.receiver_id))
     receiver = receiver_res.scalar_one()
-    
+
     if sender.balance < txn.amount:
         txn.status = TransactionStatus.FAILED
         await db.commit()
         raise HTTPException(status_code=400, detail="Sender no longer has sufficient funds")
-        
+
     # Execute transfer
     sender.balance -= txn.amount
     receiver.balance += txn.amount
-    
+
     txn.status = TransactionStatus.COMPLETED
     txn.admin_approved = True
-    
+
     await db.commit()
-    
+
     from backend.routers.transaction import get_transaction_response
     return await get_transaction_response(db, txn)

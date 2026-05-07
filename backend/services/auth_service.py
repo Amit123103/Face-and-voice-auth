@@ -19,7 +19,7 @@ from sqlalchemy import select, update, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import get_settings
-from backend.models.user import User, UserRole, AuthMode
+from backend.models.user import User, AuthMode
 from backend.models.session import SessionRecord
 
 settings = get_settings()

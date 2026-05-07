@@ -3,7 +3,7 @@ Transaction Router — dual-biometric payment transactions.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
@@ -71,10 +71,10 @@ async def list_transactions(
         .where(or_(Transaction.sender_id == current_user.id, Transaction.receiver_id == current_user.id))
         .order_by(Transaction.created_at.desc())
     )
-    
+
     # We need to manually construct the response object by fetching the receiver emails too
     transactions = result.all()
-    
+
     response_list = []
     for txn, sender_email in transactions:
         # Get receiver email
@@ -106,24 +106,24 @@ async def verify_sender(
     """Sender verifies identity to authorize sending."""
     result = await db.execute(select(Transaction).where(Transaction.id == txn_id))
     txn = result.scalar_one_or_none()
-    
+
     if not txn or txn.sender_id != current_user.id:
         raise HTTPException(status_code=404, detail="Transaction not found or you are not the sender")
 
     if txn.sender_face_verified:
         raise HTTPException(status_code=400, detail="Sender already verified")
-        
+
     try:
         is_match, conf, _, msg = await face_service.verify_face(data.frames, current_user.id, db)
         if not is_match:
             raise HTTPException(status_code=401, detail="Face verification failed")
-            
+
         txn.sender_face_verified = True
         if txn.receiver_face_verified:
             txn.status = TransactionStatus.RECEIVER_VERIFIED
         else:
             txn.status = TransactionStatus.SENDER_VERIFIED
-            
+
         await db.commit()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -141,25 +141,25 @@ async def verify_receiver(
     """Receiver verifies identity to authorize receiving."""
     result = await db.execute(select(Transaction).where(Transaction.id == txn_id))
     txn = result.scalar_one_or_none()
-    
+
     if not txn or txn.receiver_id != current_user.id:
         raise HTTPException(status_code=404, detail="Transaction not found or you are not the receiver")
 
     if txn.receiver_face_verified:
         raise HTTPException(status_code=400, detail="Receiver already verified")
-        
+
     try:
         is_match, conf, _, msg = await face_service.verify_face(data.frames, current_user.id, db)
         if not is_match:
             raise HTTPException(status_code=401, detail="Face verification failed")
-            
+
         txn.receiver_face_verified = True
-        
+
         # We only really advance status if sender has ALSO verified, meaning it's ready for admin.
         # But for logic simplicity:
         if txn.sender_face_verified:
             txn.status = TransactionStatus.RECEIVER_VERIFIED  # Means both are verified, ready for admin
-            
+
         await db.commit()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -170,7 +170,7 @@ async def verify_receiver(
 async def get_transaction_response(db: AsyncSession, txn: Transaction) -> TransactionResponse:
     sender = await db.execute(select(User.email).where(User.id == txn.sender_id))
     receiver = await db.execute(select(User.email).where(User.id == txn.receiver_id))
-    
+
     return TransactionResponse(
         id=txn.id,
         sender_email=sender.scalar_one(),

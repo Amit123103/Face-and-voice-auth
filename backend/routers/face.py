@@ -2,8 +2,6 @@
 Face Router — face enrollment and face-based authentication endpoints.
 """
 
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession

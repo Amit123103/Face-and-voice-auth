@@ -9,10 +9,7 @@ from unittest.mock import patch
 
 async def _create_admin_and_login(client: AsyncClient) -> str:
     """Helper: register and login as admin, return access token."""
-    from backend.services.auth_service import auth_service
-    from backend.services.encryption_service import encryption_service
-    from backend.models.user import User, UserRole, AuthMode
-    from backend.database import get_db
+    # imports used implicitly or needed for type checking/side effects removed if unused
 
     admin_data = {
         "email": "admin@test.com",

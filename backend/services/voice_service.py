@@ -358,7 +358,7 @@ class VoiceService:
 
         try:
             samples, sample_rate = self._decode_wav(audio_b64)
-            
+
             # Whisper requires 16kHz
             if sample_rate != 16000:
                 from scipy import signal as scipy_signal
@@ -378,8 +378,10 @@ class VoiceService:
         """Levenshtein distance helper."""
         m, n = len(s1), len(s2)
         dp = [[0] * (n + 1) for _ in range(m + 1)]
-        for i in range(m + 1): dp[i][0] = i
-        for j in range(n + 1): dp[0][j] = j
+        for i in range(m + 1):
+            dp[i][0] = i
+        for j in range(n + 1):
+            dp[0][j] = j
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 cost = 0 if s1[i - 1].lower() == s2[j - 1].lower() else 1
@@ -395,10 +397,10 @@ class VoiceService:
         # Clean strings: remove punctuation and extra whitespace
         import re
         def clean(s): return re.sub(r'[^\w\s]', '', s.lower()).strip()
-        
+
         c1, c2 = clean(transcribed), clean(expected_text)
         dist = self._edit_distance(c1, c2)
-        
+
         # Allow small tolerance (10% of length or 2 characters)
         max_dist = max(2, int(len(c2) * 0.2))
         return dist <= max_dist, transcribed

@@ -2,8 +2,6 @@
 Auth Router — password login, registration, JWT refresh, TOTP, and session management.
 """
 
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 

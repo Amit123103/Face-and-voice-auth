@@ -72,10 +72,10 @@ async def get_secret(
         select(SecretVault).where(SecretVault.id == secret_id, SecretVault.user_id == current_user.id)
     )
     secret = result.scalar_one_or_none()
-    
+
     if not secret:
         raise HTTPException(status_code=404, detail="Secret not found")
-        
+
     try:
         plaintext = encryption_service.decrypt(
             secret.ciphertext_b64,
@@ -84,9 +84,9 @@ async def get_secret(
             current_user.encryption_salt,
         )
         content = plaintext.decode("utf-8")
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Decryption failure")
-        
+
     return VaultDetailResponse(
         id=secret.id,
         title=secret.title,
@@ -107,10 +107,10 @@ async def update_secret(
         select(SecretVault).where(SecretVault.id == secret_id, SecretVault.user_id == current_user.id)
     )
     secret = result.scalar_one_or_none()
-    
+
     if not secret:
         raise HTTPException(status_code=404, detail="Secret not found")
-        
+
     try:
         ciphertext_b64, nonce_b64 = encryption_service.encrypt(
             data.content.encode("utf-8"),
@@ -119,13 +119,13 @@ async def update_secret(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail="Encryption failure")
-        
+
     secret.title = data.title
     secret.category = data.category
     secret.secret_type = data.secret_type
     secret.ciphertext_b64 = ciphertext_b64
     secret.nonce_b64 = nonce_b64
-    
+
     await db.commit()
     await db.refresh(secret)
     return secret
@@ -141,10 +141,10 @@ async def delete_secret(
         select(SecretVault).where(SecretVault.id == secret_id, SecretVault.user_id == current_user.id)
     )
     secret = result.scalar_one_or_none()
-    
+
     if not secret:
         raise HTTPException(status_code=404, detail="Secret not found")
-        
+
     await db.delete(secret)
     await db.commit()
     return {"message": "Secret deleted"}

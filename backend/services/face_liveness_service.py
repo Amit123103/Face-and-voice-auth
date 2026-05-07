@@ -154,7 +154,7 @@ class FaceLivenessService:
         has_natural_variation = scale_std > 0.5
         has_good_symmetry = avg_symmetry > MIN_SYMMETRY_SCORE
 
-        passed = has_good_symmetry
+        passed = has_good_symmetry and (len(scale_variations) < 5 or has_natural_variation)
         score = avg_symmetry * 0.7 + min(scale_std / 3.0, 0.3)
         return passed, round(min(score, 1.0), 3)
 

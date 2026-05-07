@@ -3,13 +3,13 @@ Test suite for face recognition endpoints — enrollment, verification, liveness
 """
 
 import base64
-import io
+
 
 import numpy as np
 import pytest
-import pytest_asyncio
+
 from httpx import AsyncClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 @pytest.mark.asyncio

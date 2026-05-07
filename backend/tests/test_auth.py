@@ -3,7 +3,6 @@ Test suite for authentication endpoints — registration, login, JWT, TOTP, sess
 """
 
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
 
 

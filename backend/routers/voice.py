@@ -56,14 +56,15 @@ async def set_voice_passphrase(
     current_user.voice_passphrase_enabled = True
     current_user.security_score = current_user.compute_security_score()
     await db.commit()
-    
+
     background_tasks.add_task(
         email_service.send_security_alert,
         current_user.email,
         "Voice Passphrase Enabled",
-        f"A new custom voice password has been set: '{actual_transcription}'. This will now be required for secure transactions."
+        f"A new custom voice password has been set: '{actual_transcription}'. "
+        "This will now be required for secure transactions."
     )
-    
+
     return {
         "status": "success",
         "passphrase": actual_transcription,
@@ -81,7 +82,7 @@ async def disable_voice_passphrase(
     current_user.voice_passphrase_enabled = False
     current_user.security_score = current_user.compute_security_score()
     await db.commit()
-    
+
     background_tasks.add_task(
         email_service.send_security_alert,
         current_user.email,
