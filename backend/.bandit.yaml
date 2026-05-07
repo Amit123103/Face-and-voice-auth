@@ -1,0 +1,18 @@
+# Bandit configuration file
+# ═══════════════════════════════════════════
+
+# Exclude test directories and virtual environments
+exclude_dirs:
+  - 'backend/tests'
+  - 'backend/.venv'
+  - 'backend/__pycache__'
+
+# Skips for false positives or intentional design
+skips:
+  - B101  # assert_used: Fine in tests (though we exclude tests, sometimes it leaks)
+  - B105  # hardcoded_password_string: False positives in enums
+  - B110  # try_except_pass: Sometimes intentional for non-critical lookups
+
+# Only report medium and high severity issues
+level: MEDIUM
+confidence: MEDIUM

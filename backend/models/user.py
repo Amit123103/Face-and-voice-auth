@@ -27,7 +27,7 @@ class UserRole(str, PyEnum):
 
 
 class AuthMode(str, PyEnum):
-    PASSWORD = "password"
+    PASSWORD = "password"  # nosec
     FACE = "face"
     VOICE = "voice"
     FACE_VOICE = "face_voice"

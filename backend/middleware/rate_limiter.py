@@ -31,7 +31,8 @@ def _get_storage_uri() -> str:
             if result == 0:
                 return settings.REDIS_URL
         except Exception:
-            pass
+            # Fallback to in-memory storage if Redis is unreachable or check fails
+            pass  # nosec
     return "memory://"
 
 
