@@ -99,7 +99,7 @@ class VoiceLivenessService:
         silent_frames = 0
 
         for i in range(total_frames):
-            frame = samples[i * frame_size : (i + 1) * frame_size]
+            frame = samples[i * frame_size:(i + 1) * frame_size]
             if np.max(np.abs(frame)) < SILENCE_THRESHOLD:
                 silent_frames += 1
 
